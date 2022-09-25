@@ -7,20 +7,53 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
+  micro_tests:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Run micro test
+        run: ./gradlew testDebug
+
+  ui_test:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        api-level: [ 21, 23, 29 ]
+        target: [ default ]
 
     steps:
-    - uses: actions/checkout@v3
-    - name: set up JDK 11
-      uses: actions/setup-java@v3
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: gradle
+      - uses: actions/checkout@v3
+      - name: set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: gradle
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Run micro test
-      run: ./gradlew testDebug
+      - name: Run detekt
+        run: ./gradlew detektCheck
+
+      - name: Instrumentation Tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.target }}
+          arch: x86
+          profile: Pixel 4
+          script: ./gradlew connectedCheck --stacktrace
+
+      - name: Upload Reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: Ui-Test-Reports
+          path: app/build/reports
+        if: always()
