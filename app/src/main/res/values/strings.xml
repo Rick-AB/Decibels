@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Decibels</string>
+    <string name="appName">Decibels</string>
+    <string name="myMusic">My Music</string>
 </resources>
