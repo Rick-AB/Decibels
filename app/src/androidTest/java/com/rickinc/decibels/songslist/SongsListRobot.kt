@@ -4,7 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
-import com.rickinc.decibels.MainActivity
+import com.rickinc.decibels.presentation.MainActivity
 import com.rickinc.decibels.R
 
 fun launchSongsListScreen(
