@@ -1,4 +1,4 @@
-package com.rickinc.decibels.ui.theme
+package com.rickinc.decibels.presentation.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
