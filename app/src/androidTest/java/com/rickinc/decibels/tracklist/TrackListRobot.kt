@@ -1,4 +1,4 @@
-package com.rickinc.decibels.songslist
+package com.rickinc.decibels.tracklist
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule

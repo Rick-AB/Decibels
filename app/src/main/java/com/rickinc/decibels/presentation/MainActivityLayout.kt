@@ -11,7 +11,7 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
-import com.rickinc.decibels.presentation.songslist.SongsListScreen
+import com.rickinc.decibels.presentation.tracklist.SongsListScreen
 
 @Composable
 fun MainActivityLayout() {

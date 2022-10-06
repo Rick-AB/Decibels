@@ -1,4 +1,4 @@
-package com.rickinc.decibels.presentation.songslist
+package com.rickinc.decibels.presentation.tracklist
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
