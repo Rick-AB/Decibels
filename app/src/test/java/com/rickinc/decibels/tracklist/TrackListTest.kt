@@ -22,13 +22,22 @@ class TrackListTest {
     @Test
     fun getAudioFiles_ifNoErrors_stateShouldBeDataLoaded() {
         val viewModel = TrackListViewModel()
-
         viewModel.getAudioFiles()
 
         val tracks = Track.createDummyTracks()
         val expectedState = TrackListState.DataLoaded(tracks)
         val actualState = viewModel.uiState.value
+        assertEquals(expectedState, actualState)
+    }
 
+    @Test
+    fun getAudioFiles_ifError_stateShouldBeError() {
+        val viewModel = TrackListViewModel()
+        viewModel.shouldThrowException = true
+        viewModel.getAudioFiles()
+
+        val expectedState = TrackListState.Error
+        val actualState = viewModel.uiState.value
         assertEquals(expectedState, actualState)
     }
 }
