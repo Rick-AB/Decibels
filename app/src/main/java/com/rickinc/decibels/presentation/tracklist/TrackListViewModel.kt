@@ -17,8 +17,8 @@ class TrackListViewModel(
             onSuccess = { tracks ->
                 _uiState.update { TrackListState.DataLoaded(tracks) }
             },
-            onFailure = {
-                _uiState.update { TrackListState.Error }
+            onFailure = { error ->
+                _uiState.update { TrackListState.Error(error.errorMessage) }
             })
     }
 }

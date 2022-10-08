@@ -39,7 +39,7 @@ class TrackListTest {
         val viewModel = TrackListViewModel(repo)
         viewModel.getAudioFiles()
 
-        val expectedState = TrackListState.Error
+        val expectedState = TrackListState.Error("Error reading audio files")
         val actualState = viewModel.uiState.value
         assertEquals(expectedState, actualState)
     }
