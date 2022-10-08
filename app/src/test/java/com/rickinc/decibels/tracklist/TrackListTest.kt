@@ -1,5 +1,6 @@
 package com.rickinc.decibels.tracklist
 
+import com.rickinc.decibels.data.repository.TestAudioRepository
 import com.rickinc.decibels.presentation.model.Track
 import com.rickinc.decibels.presentation.tracklist.TrackListState
 import com.rickinc.decibels.presentation.tracklist.TrackListViewModel
@@ -14,14 +15,14 @@ class TrackListTest {
 
     @Test
     fun initializeViewModel_stateShouldBeLoading() {
-        val viewModel = TrackListViewModel()
+        val viewModel = TrackListViewModel(TestAudioRepository())
 
         assert(viewModel.uiState.value is TrackListState.Loading)
     }
 
     @Test
     fun getAudioFiles_ifNoErrors_stateShouldBeDataLoaded() {
-        val viewModel = TrackListViewModel()
+        val viewModel = TrackListViewModel(TestAudioRepository())
         viewModel.getAudioFiles()
 
         val tracks = Track.createDummyTracks()
@@ -32,8 +33,10 @@ class TrackListTest {
 
     @Test
     fun getAudioFiles_ifError_stateShouldBeError() {
-        val viewModel = TrackListViewModel()
-        viewModel.shouldThrowException = true
+        val repo = TestAudioRepository()
+        repo.shouldThrowException = true
+
+        val viewModel = TrackListViewModel(repo)
         viewModel.getAudioFiles()
 
         val expectedState = TrackListState.Error

@@ -1,9 +1,9 @@
 package com.rickinc.decibels.presentation.model
 
 data class Track(
-    val trackId: Int,
+    val trackId: Long,
     val trackName: String,
-    val trackLength: Long
+    val trackLength: Int
 ) {
     companion object {
         fun createDummyTracks(): List<Track> {
