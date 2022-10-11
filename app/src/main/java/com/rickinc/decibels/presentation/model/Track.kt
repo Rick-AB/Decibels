@@ -12,5 +12,9 @@ data class Track(
             val track3 = Track(2, "Trust", 4000)
             return listOf(track1, track2, track3)
         }
+
+        fun getSingleTrack(): Track {
+            return getUniqueTrackList()[0]
+        }
     }
 }

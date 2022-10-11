@@ -43,4 +43,26 @@ class TrackListTest {
         val actualState = viewModel.uiState.value
         assertEquals(expectedState, actualState)
     }
+
+    @Test
+    fun ifTrackSelected_nowPlayingStateShouldNotBeNull() {
+        val selectedTrack = Track.getSingleTrack()
+        val viewModel = TrackListViewModel(TestAudioRepository())
+        viewModel.setNowPlaying(selectedTrack)
+
+        assert(viewModel.nowPlayingTrack.value != null)
+    }
+
+    @Test
+    fun selectingDifferentTrack_nowPlayingStateShouldBeSelectedTrack() {
+        val initialSelectedTrack = Track.getSingleTrack()
+        val viewModel = TrackListViewModel(TestAudioRepository())
+        viewModel.setNowPlaying(initialSelectedTrack)
+
+        val newSelectedTrack = Track(2, "Trust", 4000)
+        viewModel.setNowPlaying(newSelectedTrack)
+
+        val actualState = viewModel.nowPlayingTrack.value
+        assertEquals(newSelectedTrack, actualState)
+    }
 }
