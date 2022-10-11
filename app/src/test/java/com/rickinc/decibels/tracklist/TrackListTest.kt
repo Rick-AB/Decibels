@@ -25,7 +25,7 @@ class TrackListTest {
         val viewModel = TrackListViewModel(TestAudioRepository())
         viewModel.getAudioFiles()
 
-        val tracks = Track.createDummyTracks()
+        val tracks = Track.getUniqueTrackList()
         val expectedState = TrackListState.DataLoaded(tracks)
         val actualState = viewModel.uiState.value
         assertEquals(expectedState, actualState)
