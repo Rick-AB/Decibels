@@ -8,13 +8,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import com.rickinc.decibels.R
-import com.rickinc.decibels.data.repository.AudioRepositoryImpl
 import com.rickinc.decibels.presentation.model.Track
 import com.rickinc.decibels.presentation.ui.components.CustomTopAppBar
 import com.rickinc.decibels.presentation.ui.theme.Typography
@@ -23,9 +22,7 @@ import com.rickinc.decibels.presentation.ui.theme.Typography
 fun SongsListScreen(navBackStackEntry: NavBackStackEntry) {
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = { SongsListTopAppBar() }) {
         Box(modifier = Modifier.padding(it)) {
-            val context = LocalContext.current
-            val audioRepository = AudioRepositoryImpl(context)
-            val viewModel = TrackListViewModel(audioRepository)
+            val viewModel: TrackListViewModel = hiltViewModel(navBackStackEntry)
             val screenState = viewModel.uiState.collectAsState().value
 
             when (screenState) {

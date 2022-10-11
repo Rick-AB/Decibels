@@ -1,13 +1,17 @@
 package com.rickinc.decibels.presentation.tracklist
 
+import androidx.lifecycle.ViewModel
 import com.rickinc.decibels.domain.repository.AudioRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
-class TrackListViewModel(
+@HiltViewModel
+class TrackListViewModel @Inject constructor(
     private val audioRepo: AudioRepository
-) {
+) : ViewModel() {
     private val _uiState = MutableStateFlow<TrackListState>(TrackListState.Loading)
     val uiState = _uiState.asStateFlow()
 
