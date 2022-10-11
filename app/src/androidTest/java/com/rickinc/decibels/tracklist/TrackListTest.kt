@@ -11,11 +11,11 @@ class TrackListTest {
     val songsListTestRule = createAndroidComposeRule<MainActivity>()
 
     @Test
-    fun displaySongListScreen() {
-        launchSongsListScreen(songsListTestRule) {
+    fun displayTrackListScreen() {
+        launchTrackListScreen(songsListTestRule) {
 
         } verify {
-            songListScreenIsVisible()
+            trackListScreenIsVisible()
         }
     }
 }

@@ -7,7 +7,7 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.rickinc.decibels.presentation.MainActivity
 import com.rickinc.decibels.R
 
-fun launchSongsListScreen(
+fun launchTrackListScreen(
     rule: AndroidComposeTestRule<ActivityScenarioRule<MainActivity>, MainActivity>,
     block: SongsListRobot.() -> Unit
 ): SongsListRobot {
@@ -28,7 +28,7 @@ class SongsListRobot(
 class SongsListVerification(
     private val rule: AndroidComposeTestRule<ActivityScenarioRule<MainActivity>, MainActivity>
 ) {
-    fun songListScreenIsVisible() {
+    fun trackListScreenIsVisible() {
         val myMusicText = rule.activity.getString(R.string.myMusic)
         rule.onNodeWithText(myMusicText)
             .assertIsDisplayed()
