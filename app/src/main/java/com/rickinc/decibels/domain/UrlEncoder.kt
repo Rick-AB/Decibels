@@ -1,4 +1,4 @@
-package com.rickinc.decibels
+package com.rickinc.decibels.domain
 
 import java.net.URLDecoder
 import java.net.URLEncoder
