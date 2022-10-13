@@ -72,6 +72,13 @@ dependencies {
     implementation 'androidx.hilt:hilt-navigation-compose:1.0.0'
     kapt "com.google.dagger:hilt-android-compiler:2.42"
 
+    // timber
+    implementation 'com.jakewharton.timber:timber:4.7.1'
+
+    // media3
+    implementation 'androidx.media3:media3-exoplayer:1.0.0-beta02'
+    implementation 'androidx.media3:media3-ui:1.0.0-beta02'
+
     testImplementation 'junit:junit:4.13.2'
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_test_version"
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
