@@ -11,7 +11,7 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
-import com.rickinc.decibels.presentation.tracklist.SongsListScreen
+import com.rickinc.decibels.presentation.tracklist.TrackListScreen
 
 @Composable
 fun MainActivityLayout() {
@@ -36,7 +36,7 @@ fun ScreenContent(navController: NavHostController) {
         popExitTransition = { ExitTransition.None }
     ) {
         composable(Screen.FullScreen.SongListScreen.route()) {
-            SongsListScreen(navBackStackEntry = it)
+            TrackListScreen(navBackStackEntry = it)
         }
     }
 }
