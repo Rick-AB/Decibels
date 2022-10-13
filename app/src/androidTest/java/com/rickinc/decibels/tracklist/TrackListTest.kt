@@ -18,4 +18,13 @@ class TrackListTest {
             trackListScreenIsVisible()
         }
     }
+
+    @Test
+    fun displayTrackListWhenDataLoaded() {
+        launchTrackListScreen(songsListTestRule) {
+
+        } verify {
+            trackListIsVisible()
+        }
+    }
 }

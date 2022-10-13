@@ -1,8 +1,7 @@
 package com.rickinc.decibels.tracklist
 
-import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
-import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.rickinc.decibels.presentation.MainActivity
 import com.rickinc.decibels.R
@@ -32,5 +31,12 @@ class SongsListVerification(
         val myMusicText = rule.activity.getString(R.string.myMusic)
         rule.onNodeWithText(myMusicText)
             .assertIsDisplayed()
+    }
+
+    fun trackListIsVisible() {
+        val trackListContentDesc = rule.activity.getString(R.string.track_list)
+        rule.onNodeWithContentDescription(trackListContentDesc)
+            .onChildren()
+            .assertCountEquals(3)
     }
 }

@@ -1,4 +1,5 @@
 <resources>
     <string name="appName">Decibels</string>
     <string name="myMusic">My Music</string>
+    <string name="track_list">Track list</string>
 </resources>
