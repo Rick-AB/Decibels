@@ -34,7 +34,7 @@ class AudioRepositoryImpl(
             MediaStore.Audio.Media.ARTIST
         )
         val selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0"
-        val sortOrder = "${MediaStore.Audio.Media.DISPLAY_NAME} ASC"
+        val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
         val query = context.contentResolver.query(
             collection,
             projection,
