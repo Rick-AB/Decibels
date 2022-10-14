@@ -1,10 +1,11 @@
 package com.rickinc.decibels.tracklist
 
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import com.rickinc.decibels.data.repository.TestAudioRepository
 import com.rickinc.decibels.di.RepositoryModule
+import com.rickinc.decibels.domain.model.Result
 import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.presentation.MainActivity
+import com.rickinc.decibels.presentation.model.Track
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,64 +20,43 @@ import javax.inject.Singleton
 
 @UninstallModules(RepositoryModule::class)
 @HiltAndroidTest
-class TrackListTest {
+class TrackListErrorTest {
 
     @Module
     @InstallIn(SingletonComponent::class)
-    class TestModule {
+    class TestErrorModule {
 
         @Provides
         @Singleton
-        fun provideTestAudioRepository(): AudioRepository {
-            return TestAudioRepository()
+        fun provideTestAudioErrorRepository(): AudioRepository {
+            return TestAudioErrorRepository()
         }
     }
 
     @get:Rule(order = 0)
-    var hiltTestRule = HiltAndroidRule(this)
+    var hiltRule = HiltAndroidRule(this)
 
     @get:Rule(order = 1)
     val trackListTestRule = createAndroidComposeRule<MainActivity>()
 
     @Before
     fun setup() {
-        hiltTestRule.inject()
+        hiltRule.inject()
     }
 
     @Test
-    fun displayTrackListScreen() {
+    fun whenLoadingFails_DisplayErrorScreen() {
         launchTrackListScreen(trackListTestRule) {
 
         } verify {
-            trackListScreenIsVisible()
+            errorScreenIsVisible()
         }
     }
 
-    @Test
-    fun displayTrackListWhenDataLoaded() {
-        launchTrackListScreen(trackListTestRule) {
-
-        } verify {
-            trackListIsVisible()
+    class TestAudioErrorRepository : AudioRepository {
+        override fun getAudioFiles(): Result<List<Track>> {
+            return Result.Error("Failed to load audio files")
         }
-    }
 
-    @Test
-    fun displayTrackListChildrenWhenDataIsLoaded() {
-        launchTrackListScreen(trackListTestRule) {
-
-        } verify {
-            trackListChildrenIsVisible()
-        }
-    }
-
-    @Test
-    fun whenTrackListIsLoaded_TracksAreClickable() {
-        launchTrackListScreen(trackListTestRule) {
-
-        } verify {
-            trackListItemsAreClickable()
-        }
     }
 }
-
