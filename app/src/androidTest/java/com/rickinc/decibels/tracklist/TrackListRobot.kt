@@ -57,4 +57,11 @@ class SongsListVerification(
             .onLast()
             .assertHasClickAction()
     }
+
+    fun errorScreenIsVisible() {
+        val errorText = rule.activity.getString(R.string.error_loading_audio_files)
+        rule.onNodeWithText(errorText)
+            .assertExists()
+            .assertIsDisplayed()
+    }
 }

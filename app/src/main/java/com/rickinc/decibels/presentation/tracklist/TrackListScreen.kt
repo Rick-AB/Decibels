@@ -75,7 +75,7 @@ fun TrackListBody(innerPadding: PaddingValues, navBackStackEntry: NavBackStackEn
 
         when (screenState) {
             is TrackListState.DataLoaded -> TrackList(screenState.tracks)
-            else -> Text(text = "")
+            else -> ErrorText()
         }
 
     }
@@ -128,6 +128,21 @@ fun TrackItem(track: Track) {
                 tint = Color.Gray
             )
         }
+    }
+}
+
+@Composable
+fun ErrorText() {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
+        Text(
+            text = stringResource(id = R.string.error_loading_audio_files),
+            style = Typography.titleMedium
+        )
     }
 }
 

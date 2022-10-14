@@ -8,16 +8,16 @@ import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
 import javax.inject.Singleton
 
-@Module
-@TestInstallIn(
-    components = [SingletonComponent::class],
-    replaces = [RepositoryModule::class]
-)
-class TestRepositoryModule {
-
-    @Provides
-    @Singleton
-    fun provideTestRepository(): AudioRepository {
-        return TestAudioRepository()
-    }
-}
+//@Module
+//@TestInstallIn(
+//    components = [SingletonComponent::class],
+//    replaces = [RepositoryModule::class]
+//)
+//class TestAudioRepositoryModule {
+//
+//    @Provides
+//    @Singleton
+//    fun provideTestRepository(): AudioRepository {
+//        return TestAudioRepository()
+//    }
+//}
