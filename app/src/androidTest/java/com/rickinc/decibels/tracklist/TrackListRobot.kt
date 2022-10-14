@@ -36,7 +36,25 @@ class SongsListVerification(
     fun trackListIsVisible() {
         val trackListContentDesc = rule.activity.getString(R.string.track_list)
         rule.onNodeWithContentDescription(trackListContentDesc)
+            .assertIsDisplayed()
+    }
+
+    fun trackListChildrenIsVisible() {
+        val trackListContentDesc = rule.activity.getString(R.string.track_list)
+        rule.onNodeWithContentDescription(trackListContentDesc)
             .onChildren()
             .assertCountEquals(3)
+    }
+
+    fun trackListItemsAreClickable() {
+        val trackListContentDesc = rule.activity.getString(R.string.track_list)
+        rule.onNodeWithContentDescription(trackListContentDesc)
+            .onChildAt(0)
+            .assertHasClickAction()
+
+        rule.onNodeWithContentDescription(trackListContentDesc)
+            .onChildren()
+            .onLast()
+            .assertHasClickAction()
     }
 }
