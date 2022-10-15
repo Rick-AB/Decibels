@@ -1,11 +1,8 @@
 package com.rickinc.decibels.presentation.ui.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.material.AppBarDefaults
-import androidx.compose.material.Colors
 import androidx.compose.material.Text
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -16,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.rickinc.decibels.presentation.ui.theme.Typography
 
 @Composable
-fun CustomTopAppBar(
+fun DefaultTopAppBar(
     title: String?,
     modifier: Modifier = Modifier,
     mainIcon: @Composable (() -> Unit)? = null,

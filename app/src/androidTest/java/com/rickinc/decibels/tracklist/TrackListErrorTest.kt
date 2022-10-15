@@ -49,7 +49,7 @@ class TrackListErrorTest {
         launchTrackListScreen(trackListTestRule) {
 
         } verify {
-            errorScreenIsVisible()
+            errorScreenIsDisplayed()
         }
     }
 

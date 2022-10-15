@@ -49,7 +49,7 @@ class TrackListEmptyTest {
         launchTrackListScreen(trackListTestRule) {
 
         } verify {
-            emptyScreenIsVisible()
+            emptyScreenIsDisplayed()
         }
     }
 

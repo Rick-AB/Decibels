@@ -48,7 +48,7 @@ class TrackListTest {
         launchTrackListScreen(trackListTestRule) {
 
         } verify {
-            trackListScreenIsVisible()
+            trackListScreenIsDisplayed()
         }
     }
 
@@ -57,7 +57,7 @@ class TrackListTest {
         launchTrackListScreen(trackListTestRule) {
 
         } verify {
-            trackListIsVisible()
+            trackListIsDisplayed()
         }
     }
 
@@ -66,16 +66,25 @@ class TrackListTest {
         launchTrackListScreen(trackListTestRule) {
 
         } verify {
-            trackListChildrenIsVisible()
+            trackListChildrenAreDisplayed()
         }
     }
 
     @Test
-    fun whenTrackListIsLoaded_TracksAreClickable() {
+    fun whenTrackListIsLoaded_tracksAreClickable() {
         launchTrackListScreen(trackListTestRule) {
 
         } verify {
             trackListItemsAreClickable()
+        }
+    }
+
+    @Test
+    fun whenSingleTrackIsClicked_nowPlayingScreenIsDisplayed() {
+        launchTrackListScreen(trackListTestRule) {
+            selectFirstTrack()
+        } verify {
+            nowPlayingScreenIsDisplayed()
         }
     }
 }

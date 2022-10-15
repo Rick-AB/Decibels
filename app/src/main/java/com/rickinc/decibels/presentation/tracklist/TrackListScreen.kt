@@ -30,15 +30,15 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavBackStackEntry
 import com.rickinc.decibels.R
 import com.rickinc.decibels.presentation.model.Track
-import com.rickinc.decibels.presentation.ui.components.CustomTopAppBar
+import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.ui.components.accomponistpermision.rememberPermissionState
 import com.rickinc.decibels.presentation.ui.components.isPermanentlyDenied
 import com.rickinc.decibels.presentation.ui.theme.Typography
 import com.rickinc.decibels.presentation.util.formatLongToDisplayString
 
 @Composable
-fun TrackListScreen(navBackStackEntry: NavBackStackEntry) {
-    Scaffold(modifier = Modifier.fillMaxSize(), topBar = { TrackListTopAppBar() }) {
+fun TrackListScreen(navBackStackEntry: NavBackStackEntry, onTrackItemClick: (Track) -> Unit) {
+    Scaffold(modifier = Modifier.fillMaxSize(), topBar = { TrackListTopAppBar() }) { padding ->
         val storagePermission =
             rememberPermissionState(permission = Manifest.permission.READ_EXTERNAL_STORAGE)
 
@@ -57,7 +57,11 @@ fun TrackListScreen(navBackStackEntry: NavBackStackEntry) {
         }
 
         when {
-            storagePermission.hasPermission -> TrackListBody(it, navBackStackEntry)
+            storagePermission.hasPermission -> TrackListBody(
+                padding,
+                navBackStackEntry,
+                onTrackItemClick
+            )
             storagePermission.shouldShowRationale -> PermissionRequiredBody()
             storagePermission.isPermanentlyDenied() && storagePermission.permissionRequested -> PermissionRequiredBody()
         }
@@ -65,7 +69,11 @@ fun TrackListScreen(navBackStackEntry: NavBackStackEntry) {
 }
 
 @Composable
-fun TrackListBody(innerPadding: PaddingValues, navBackStackEntry: NavBackStackEntry) {
+fun TrackListBody(
+    innerPadding: PaddingValues,
+    navBackStackEntry: NavBackStackEntry,
+    onTrackItemClick: (Track) -> Unit
+) {
     Box(modifier = Modifier.padding(innerPadding)) {
         val viewModel: TrackListViewModel = hiltViewModel(navBackStackEntry)
         val screenState = viewModel.uiState.collectAsState().value
@@ -75,7 +83,7 @@ fun TrackListBody(innerPadding: PaddingValues, navBackStackEntry: NavBackStackEn
         }
 
         when (screenState) {
-            is TrackListState.DataLoaded -> TrackList(screenState.tracks)
+            is TrackListState.DataLoaded -> TrackList(screenState.tracks, onTrackItemClick)
             else -> InfoText(R.string.error_loading_audio_files)
         }
 
@@ -84,11 +92,11 @@ fun TrackListBody(innerPadding: PaddingValues, navBackStackEntry: NavBackStackEn
 
 @Composable
 fun TrackListTopAppBar() {
-    CustomTopAppBar(title = stringResource(id = R.string.myMusic))
+    DefaultTopAppBar(title = stringResource(id = R.string.myMusic))
 }
 
 @Composable
-fun TrackList(tracks: List<Track>) {
+fun TrackList(tracks: List<Track>, onTrackItemClick: (Track) -> Unit) {
     if (tracks.isEmpty()) InfoText(stringResource = R.string.empty_track_list)
     else {
         val trackContentDescription = stringResource(id = R.string.track_list)
@@ -99,19 +107,21 @@ fun TrackList(tracks: List<Track>) {
             }
         ) {
             items(tracks, key = { it.trackId }) {
-                TrackItem(track = it)
+                TrackItem(track = it) {
+                    onTrackItemClick(it)
+                }
             }
         }
     }
 }
 
 @Composable
-fun TrackItem(track: Track) {
+fun TrackItem(track: Track, onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { }
+            .clickable { onClick() }
             .padding(start = 16.dp, end = 16.dp, top = 8.dp),
     ) {
         Column(modifier = Modifier.weight(1f)) {

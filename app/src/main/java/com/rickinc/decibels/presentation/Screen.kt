@@ -16,7 +16,8 @@ sealed class Screen(
             emptyList()
     ) : Screen(name, argumentList) {
 
-        object SongListScreen : FullScreen("SongsList")
+        object TrackListScreen : FullScreen("Track list")
+        object NowPlayingScreen : FullScreen("Now playing")
     }
 
     init {

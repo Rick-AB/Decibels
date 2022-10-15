@@ -21,25 +21,32 @@ class SongsListRobot(
     ): SongsListVerification {
         return SongsListVerification(rule).apply(block)
     }
+
+    fun selectFirstTrack() {
+        val trackListContentDesc = rule.activity.getString(R.string.track_list)
+        rule.onNodeWithContentDescription(trackListContentDesc)
+            .onChildAt(0)
+            .performClick()
+    }
 }
 
 
 class SongsListVerification(
     private val rule: AndroidComposeTestRule<ActivityScenarioRule<MainActivity>, MainActivity>
 ) {
-    fun trackListScreenIsVisible() {
+    fun trackListScreenIsDisplayed() {
         val myMusicText = rule.activity.getString(R.string.myMusic)
         rule.onNodeWithText(myMusicText)
             .assertIsDisplayed()
     }
 
-    fun trackListIsVisible() {
+    fun trackListIsDisplayed() {
         val trackListContentDesc = rule.activity.getString(R.string.track_list)
         rule.onNodeWithContentDescription(trackListContentDesc)
             .assertIsDisplayed()
     }
 
-    fun trackListChildrenIsVisible() {
+    fun trackListChildrenAreDisplayed() {
         val trackListContentDesc = rule.activity.getString(R.string.track_list)
         rule.onNodeWithContentDescription(trackListContentDesc)
             .onChildren()
@@ -58,16 +65,25 @@ class SongsListVerification(
             .assertHasClickAction()
     }
 
-    fun errorScreenIsVisible() {
+    fun errorScreenIsDisplayed() {
         val errorText = rule.activity.getString(R.string.error_loading_audio_files)
         rule.onNodeWithText(errorText)
             .assertExists()
             .assertIsDisplayed()
     }
 
-    fun emptyScreenIsVisible() {
+    fun emptyScreenIsDisplayed() {
         val emptyText = rule.activity.getString(R.string.empty_track_list)
         rule.onNodeWithText(emptyText)
+            .assertExists()
+            .assertIsDisplayed()
+    }
+
+    fun nowPlayingScreenIsDisplayed() {
+        val nowPlayingToolbarContentDesc =
+            rule.activity.getString(R.string.now_playing_toolbar_content_desc)
+
+        rule.onNodeWithContentDescription(nowPlayingToolbarContentDesc)
             .assertExists()
             .assertIsDisplayed()
     }
