@@ -64,4 +64,11 @@ class SongsListVerification(
             .assertExists()
             .assertIsDisplayed()
     }
+
+    fun emptyScreenIsVisible() {
+        val emptyText = rule.activity.getString(R.string.empty_track_list)
+        rule.onNodeWithText(emptyText)
+            .assertExists()
+            .assertIsDisplayed()
+    }
 }

@@ -3,4 +3,5 @@
     <string name="myMusic">My Music</string>
     <string name="track_list">Track list</string>
     <string name="error_loading_audio_files">There was an error loading audio files</string>
+    <string name="empty_track_list">Nothing to show here</string>
 </resources>

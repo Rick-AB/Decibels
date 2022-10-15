@@ -1,6 +1,7 @@
 package com.rickinc.decibels.presentation.tracklist
 
 import android.Manifest
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,11 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -75,7 +76,7 @@ fun TrackListBody(innerPadding: PaddingValues, navBackStackEntry: NavBackStackEn
 
         when (screenState) {
             is TrackListState.DataLoaded -> TrackList(screenState.tracks)
-            else -> ErrorText()
+            else -> InfoText(R.string.error_loading_audio_files)
         }
 
     }
@@ -88,7 +89,8 @@ fun TrackListTopAppBar() {
 
 @Composable
 fun TrackList(tracks: List<Track>) {
-    Column(modifier = Modifier.fillMaxSize()) {
+    if (tracks.isEmpty()) InfoText(stringResource = R.string.empty_track_list)
+    else {
         val trackContentDescription = stringResource(id = R.string.track_list)
         LazyColumn(modifier = Modifier
             .fillMaxSize()
@@ -132,7 +134,7 @@ fun TrackItem(track: Track) {
 }
 
 @Composable
-fun ErrorText() {
+fun InfoText(@StringRes stringResource: Int) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -140,8 +142,9 @@ fun ErrorText() {
             .padding(horizontal = 16.dp)
     ) {
         Text(
-            text = stringResource(id = R.string.error_loading_audio_files),
-            style = Typography.titleMedium
+            text = stringResource(id = stringResource),
+            style = Typography.titleMedium,
+            textAlign = TextAlign.Center
         )
     }
 }
