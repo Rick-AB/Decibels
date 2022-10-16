@@ -2,7 +2,7 @@ package com.rickinc.decibels.presentation.tracklist
 
 import androidx.lifecycle.ViewModel
 import com.rickinc.decibels.domain.repository.AudioRepository
-import com.rickinc.decibels.presentation.model.Track
+import com.rickinc.decibels.domain.model.Track
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

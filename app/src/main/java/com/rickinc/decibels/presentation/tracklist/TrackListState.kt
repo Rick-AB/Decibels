@@ -1,6 +1,6 @@
 package com.rickinc.decibels.presentation.tracklist
 
-import com.rickinc.decibels.presentation.model.Track
+import com.rickinc.decibels.domain.model.Track
 
 sealed class TrackListState {
     object Loading : TrackListState()

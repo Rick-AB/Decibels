@@ -29,7 +29,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavBackStackEntry
 import com.rickinc.decibels.R
-import com.rickinc.decibels.presentation.model.Track
+import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.ui.components.accomponistpermision.rememberPermissionState
 import com.rickinc.decibels.presentation.ui.components.isPermanentlyDenied

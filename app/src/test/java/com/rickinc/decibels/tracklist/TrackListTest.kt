@@ -1,7 +1,7 @@
 package com.rickinc.decibels.tracklist
 
 import com.rickinc.decibels.data.repository.TestAudioRepository
-import com.rickinc.decibels.presentation.model.Track
+import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.presentation.tracklist.TrackListState
 import com.rickinc.decibels.presentation.tracklist.TrackListViewModel
 import com.rickinc.decibels.util.CoroutineTestRule
@@ -59,7 +59,7 @@ class TrackListTest {
         val viewModel = TrackListViewModel(TestAudioRepository())
         viewModel.setNowPlaying(initialSelectedTrack)
 
-        val newSelectedTrack = Track(2, "Trust", 4000)
+        val newSelectedTrack = Track.getSingleTrack(1)
         viewModel.setNowPlaying(newSelectedTrack)
 
         val actualState = viewModel.nowPlayingTrack.value

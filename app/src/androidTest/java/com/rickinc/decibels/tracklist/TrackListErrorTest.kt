@@ -5,7 +5,7 @@ import com.rickinc.decibels.di.RepositoryModule
 import com.rickinc.decibels.domain.model.Result
 import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.presentation.MainActivity
-import com.rickinc.decibels.presentation.model.Track
+import com.rickinc.decibels.domain.model.Track
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

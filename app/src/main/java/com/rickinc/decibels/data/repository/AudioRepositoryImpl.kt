@@ -11,7 +11,7 @@ import android.provider.MediaStore
 import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Result
 import com.rickinc.decibels.domain.repository.AudioRepository
-import com.rickinc.decibels.presentation.model.Track
+import com.rickinc.decibels.domain.model.Track
 
 class AudioRepositoryImpl(
     private val context: Context
@@ -60,7 +60,7 @@ class AudioRepositoryImpl(
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                     id
                 )
-                list.add(Track(id, title, duration))
+                list.add(Track(id, title, duration, artist, albumId, contentUri))
             }
         }
         return Result.Success(list)
