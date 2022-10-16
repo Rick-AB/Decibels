@@ -126,6 +126,9 @@ fun TrackItem(track: Track, onClick: () -> Unit) {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(text = track.trackName, style = Typography.titleMedium, maxLines = 1)
+
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = track.artist, style = Typography.bodySmall, maxLines = 1)
         }
 
         val displayTime = formatLongToDisplayString(track.trackLength.toLong())

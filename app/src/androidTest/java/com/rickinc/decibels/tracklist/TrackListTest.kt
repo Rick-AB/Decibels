@@ -3,6 +3,7 @@ package com.rickinc.decibels.tracklist
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.rickinc.decibels.data.repository.TestAudioRepository
 import com.rickinc.decibels.di.RepositoryModule
+import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.presentation.MainActivity
 import dagger.Module
@@ -67,6 +68,16 @@ class TrackListTest {
 
         } verify {
             trackListChildrenAreDisplayed()
+        }
+    }
+
+    @Test
+    fun whenDataIsLoaded_ListItemsDisplayTrackInfo(){
+        val track = Track.getSingleTrack()
+        launchTrackListScreen(trackListTestRule) {
+
+        } verify {
+            trackInfoIsDisplayed(track)
         }
     }
 

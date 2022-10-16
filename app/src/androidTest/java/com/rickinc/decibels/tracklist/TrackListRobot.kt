@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.rickinc.decibels.presentation.MainActivity
 import com.rickinc.decibels.R
+import com.rickinc.decibels.domain.model.Track
 
 fun launchTrackListScreen(
     rule: AndroidComposeTestRule<ActivityScenarioRule<MainActivity>, MainActivity>,
@@ -56,13 +57,8 @@ class SongsListVerification(
     fun trackListItemsAreClickable() {
         val trackListContentDesc = rule.activity.getString(R.string.track_list)
         rule.onNodeWithContentDescription(trackListContentDesc)
-            .onChildAt(0)
-            .assertHasClickAction()
-
-        rule.onNodeWithContentDescription(trackListContentDesc)
             .onChildren()
-            .onLast()
-            .assertHasClickAction()
+            .assertAll(hasClickAction())
     }
 
     fun errorScreenIsDisplayed() {
@@ -84,6 +80,16 @@ class SongsListVerification(
             rule.activity.getString(R.string.now_playing_toolbar_content_desc)
 
         rule.onNodeWithContentDescription(nowPlayingToolbarContentDesc)
+            .assertExists()
+            .assertIsDisplayed()
+    }
+
+    fun trackInfoIsDisplayed(track: Track) {
+        rule.onNodeWithText(track.trackName)
+            .assertExists()
+            .assertIsDisplayed()
+
+        rule.onNodeWithText(track.artist)
             .assertExists()
             .assertIsDisplayed()
     }
