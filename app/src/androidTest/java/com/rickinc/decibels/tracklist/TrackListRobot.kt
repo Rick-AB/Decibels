@@ -47,13 +47,6 @@ class SongsListVerification(
             .assertIsDisplayed()
     }
 
-    fun trackListChildrenAreDisplayed() {
-        val trackListContentDesc = rule.activity.getString(R.string.track_list)
-        rule.onNodeWithContentDescription(trackListContentDesc)
-            .onChildren()
-            .assertCountEquals(3)
-    }
-
     fun trackListItemsAreClickable() {
         val trackListContentDesc = rule.activity.getString(R.string.track_list)
         rule.onNodeWithContentDescription(trackListContentDesc)
@@ -64,14 +57,12 @@ class SongsListVerification(
     fun errorScreenIsDisplayed() {
         val errorText = rule.activity.getString(R.string.error_loading_audio_files)
         rule.onNodeWithText(errorText)
-            .assertExists()
             .assertIsDisplayed()
     }
 
     fun emptyScreenIsDisplayed() {
         val emptyText = rule.activity.getString(R.string.empty_track_list)
         rule.onNodeWithText(emptyText)
-            .assertExists()
             .assertIsDisplayed()
     }
 
@@ -80,17 +71,20 @@ class SongsListVerification(
             rule.activity.getString(R.string.now_playing_toolbar_content_desc)
 
         rule.onNodeWithContentDescription(nowPlayingToolbarContentDesc)
-            .assertExists()
             .assertIsDisplayed()
     }
 
-    fun trackInfoIsDisplayed(track: Track) {
-        rule.onNodeWithText(track.trackName)
-            .assertExists()
-            .assertIsDisplayed()
+    fun trackInfoIsDisplayed(tracks: List<Track>) {
+        val trackListContentDesc = rule.activity.getString(R.string.track_list)
+        tracks.forEach { track ->
+            rule.onNodeWithContentDescription(trackListContentDesc)
+                .onChildren()
+                .assertAny(hasText(track.trackName))
 
-        rule.onNodeWithText(track.artist)
-            .assertExists()
-            .assertIsDisplayed()
+            rule.onNodeWithContentDescription(trackListContentDesc)
+                .onChildren()
+                .assertAny(hasText(track.artist))
+        }
+
     }
 }

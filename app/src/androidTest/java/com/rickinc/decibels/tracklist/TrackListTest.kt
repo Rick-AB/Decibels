@@ -47,7 +47,7 @@ class TrackListTest {
     @Test
     fun displayTrackListScreen() {
         launchTrackListScreen(trackListTestRule) {
-
+            // no operation
         } verify {
             trackListScreenIsDisplayed()
         }
@@ -56,35 +56,26 @@ class TrackListTest {
     @Test
     fun displayTrackListWhenDataLoaded() {
         launchTrackListScreen(trackListTestRule) {
-
+            // no operation
         } verify {
             trackListIsDisplayed()
         }
     }
 
     @Test
-    fun displayTrackListChildrenWhenDataIsLoaded() {
+    fun whenDataIsLoaded_listItemsDisplayTrackInfo() {
+        val tracks = Track.getUniqueTrackList()
         launchTrackListScreen(trackListTestRule) {
-
+            // no operation
         } verify {
-            trackListChildrenAreDisplayed()
-        }
-    }
-
-    @Test
-    fun whenDataIsLoaded_ListItemsDisplayTrackInfo(){
-        val track = Track.getSingleTrack()
-        launchTrackListScreen(trackListTestRule) {
-
-        } verify {
-            trackInfoIsDisplayed(track)
+            trackInfoIsDisplayed(tracks)
         }
     }
 
     @Test
     fun whenTrackListIsLoaded_tracksAreClickable() {
         launchTrackListScreen(trackListTestRule) {
-
+            // no operation
         } verify {
             trackListItemsAreClickable()
         }
