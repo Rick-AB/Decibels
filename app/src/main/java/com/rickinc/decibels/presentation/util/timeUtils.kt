@@ -2,7 +2,7 @@ package com.rickinc.decibels.presentation.util
 
 import java.util.concurrent.TimeUnit
 
-fun formatLongToDisplayString(long: Long): String {
+fun formatTrackDuration(long: Long): String {
     return String.format(
         "%02d:%02d",
         TimeUnit.MILLISECONDS.toMinutes(long) -

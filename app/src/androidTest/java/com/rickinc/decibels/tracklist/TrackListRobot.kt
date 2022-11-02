@@ -68,7 +68,7 @@ class SongsListVerification(
 
     fun nowPlayingScreenIsDisplayed() {
         val nowPlayingToolbarContentDesc =
-            rule.activity.getString(R.string.now_playing_toolbar_content_desc)
+            rule.activity.getString(R.string.top_app_bar)
 
         rule.onNodeWithContentDescription(nowPlayingToolbarContentDesc)
             .assertIsDisplayed()

@@ -30,13 +30,14 @@ fun DefaultTopAppBar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.height(50.dp)
             ) {
-                if (navigationIcon != null)
-                    navigationIcon()
+                if (navigationIcon != null) navigationIcon()
+
                 if (mainIcon != null) {
                     mainIcon()
                 } else {
                     Spacer(modifier = Modifier.width(45.dp))
                 }
+
                 Row(
                     Modifier
                         .weight(1f),
@@ -45,7 +46,6 @@ fun DefaultTopAppBar(
                 )
 
                 if (actions != null)
-
                     Row(
                         Modifier,
                         horizontalArrangement = Arrangement.End,

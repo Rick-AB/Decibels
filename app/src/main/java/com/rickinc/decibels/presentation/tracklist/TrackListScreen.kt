@@ -34,7 +34,7 @@ import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.ui.components.accomponistpermision.rememberPermissionState
 import com.rickinc.decibels.presentation.ui.components.isPermanentlyDenied
 import com.rickinc.decibels.presentation.ui.theme.Typography
-import com.rickinc.decibels.presentation.util.formatLongToDisplayString
+import com.rickinc.decibels.presentation.util.formatTrackDuration
 
 @Composable
 fun TrackListScreen(navBackStackEntry: NavBackStackEntry, onTrackItemClick: (Track) -> Unit) {
@@ -131,7 +131,7 @@ fun TrackItem(track: Track, onClick: () -> Unit) {
             Text(text = track.artist, style = Typography.bodySmall, maxLines = 1)
         }
 
-        val displayTime = formatLongToDisplayString(track.trackLength.toLong())
+        val displayTime = formatTrackDuration(track.trackLength.toLong())
         Spacer(modifier = Modifier.width(16.dp))
         Text(text = displayTime, style = Typography.bodyMedium)
 
