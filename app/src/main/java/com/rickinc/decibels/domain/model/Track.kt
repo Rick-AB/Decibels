@@ -1,7 +1,13 @@
 package com.rickinc.decibels.domain.model
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.net.Uri
+import com.rickinc.decibels.R
+
 
 data class Track(
     val trackId: Long,
@@ -23,6 +29,32 @@ data class Track(
         fun getSingleTrack(position: Int = 0): Track {
             val tracks = getUniqueTrackList()
             return if (position > tracks.lastIndex) tracks[tracks.lastIndex] else tracks[position]
+        }
+
+        private fun getBitmapFromDrawable(drawable: Drawable): Bitmap? {
+            if (drawable is BitmapDrawable) {
+                if (drawable.bitmap != null) {
+                    return drawable.bitmap
+                }
+            }
+            val bitmap: Bitmap =
+                if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
+                    Bitmap.createBitmap(
+                        1,
+                        1,
+                        Bitmap.Config.ARGB_8888
+                    ) // Single color bitmap will be created of 1x1 pixel
+                } else {
+                    Bitmap.createBitmap(
+                        drawable.intrinsicWidth,
+                        drawable.intrinsicHeight,
+                        Bitmap.Config.ARGB_8888
+                    )
+                }
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
+            return bitmap
         }
     }
 }

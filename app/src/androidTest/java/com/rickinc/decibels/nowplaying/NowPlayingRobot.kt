@@ -9,12 +9,12 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.rickinc.decibels.presentation.nowplaying.NowPlayingScreen
 import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Track
-import com.rickinc.decibels.presentation.nowplaying.NowPlayingUiState
+import com.rickinc.decibels.presentation.nowplaying.NowPlayingState
 import com.rickinc.decibels.presentation.util.formatTrackDuration
 
 fun launchNowPlayingScreen(
     rule: AndroidComposeTestRule<ActivityScenarioRule<ComponentActivity>, ComponentActivity>,
-    uiState: NowPlayingUiState,
+    uiState: NowPlayingState.TrackLoaded,
     block: NowPlayingRobot.() -> Unit
 ): NowPlayingRobot {
     rule.setContent {

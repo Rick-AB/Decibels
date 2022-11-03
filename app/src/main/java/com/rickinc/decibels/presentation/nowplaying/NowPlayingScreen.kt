@@ -1,5 +1,6 @@
 package com.rickinc.decibels.presentation.nowplaying
 
+import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
@@ -9,16 +10,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Slider
+import androidx.compose.material.SliderColors
+import androidx.compose.material.SliderDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -30,20 +33,41 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ChainStyle
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
 import com.rickinc.decibels.R
-import com.rickinc.decibels.domain.model.Track
+import com.rickinc.decibels.presentation.Screen
 import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.ui.theme.Typography
 import com.rickinc.decibels.presentation.util.formatTrackDuration
+import timber.log.Timber
 
 @Composable
-fun NowPlayingScreen() {
-    NowPlayingScreen(uiState = NowPlayingUiState(Track.getSingleTrack()))
+fun NowPlayingScreen(navBackStackEntry: NavBackStackEntry, goBack: () -> Unit) {
+    val viewModel: NowPlayingViewModel = hiltViewModel(navBackStackEntry)
+    val trackId = navBackStackEntry.arguments?.getString(Screen.TRACK_ID)
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val context = LocalContext.current
+
+    LaunchedEffect(key1 = trackId) {
+        trackId?.let(viewModel::setSelectedTrack)
+    }
+
+    when (uiState) {
+        is NowPlayingState.TrackLoaded -> NowPlayingScreen(uiState = uiState)
+        is NowPlayingState.ErrorLoadingTrack -> {
+            Toast.makeText(context, uiState.error.errorMessage, Toast.LENGTH_LONG).show()
+            goBack()
+        }
+        else -> {}
+    }
+
 }
 
 @Composable
 fun NowPlayingScreen(
-    uiState: NowPlayingUiState
+    uiState: NowPlayingState.TrackLoaded
 ) {
     Scaffold(topBar = { NowPlayingTopAppBar() }) {
         ConstraintLayout(
@@ -57,17 +81,35 @@ fun NowPlayingScreen(
 
             val guideLine = createGuidelineFromTop(0.55f)
 
-            Image(
-                painter = painterResource(id = R.drawable.ic_baseline_more_vert_24),
-                contentDescription = stringResource(id = R.string.album_art),
-                modifier = Modifier.constrainAs(albumArtComposable) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(guideLine)
-                    width = Dimension.fillToConstraints
-                    height = Dimension.ratio("1:1")
-                }
-            )
+            val trackThumbnail = uiState.currentTrack.thumbnail
+
+            if (trackThumbnail != null) {
+                Image(
+                    bitmap = trackThumbnail.asImageBitmap(),
+                    contentDescription = stringResource(id = R.string.album_art),
+                    modifier = Modifier.constrainAs(albumArtComposable) {
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        bottom.linkTo(guideLine)
+                        width = Dimension.fillToConstraints
+                        height = Dimension.ratio("1:1")
+                    }
+                )
+            } else {
+                Timber.d("EVVVVALNFWUFN WNFIWFICJICNWIMICNWEICWICIWCIKWIK")
+                Image(
+                    painter = painterResource(id = R.drawable.ic_baseline_audio_file_24),
+                    contentDescription = stringResource(id = R.string.album_art),
+                    modifier = Modifier
+                        .constrainAs(albumArtComposable) {
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            bottom.linkTo(guideLine)
+                            width = Dimension.fillToConstraints
+                            height = Dimension.ratio("1:1")
+                        }
+                )
+            }
 
             val trackName = uiState.currentTrack.trackName
             Text(
@@ -98,6 +140,10 @@ fun NowPlayingScreen(
             Slider(
                 value = 0f,
                 onValueChange = {},
+                colors = SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    activeTrackColor = MaterialTheme.colorScheme.primary
+                ),
                 modifier = Modifier
                     .constrainAs(seekBar) {
                         start.linkTo(parent.start)
@@ -108,7 +154,7 @@ fun NowPlayingScreen(
             )
 
             Text(
-                text = "00:00",
+                text = "0:00",
                 style = Typography.bodyMedium,
                 modifier = Modifier.constrainAs(currentDurationComposable) {
                     start.linkTo(seekBar.start)
@@ -154,7 +200,7 @@ fun NowPlayingScreen(
                 iconRes = R.drawable.ic_play,
                 contentDesc = R.string.play_pause_button,
                 size = 44.dp,
-                backgroundColor = Color.Magenta,
+                backgroundColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.constrainAs(playPauseButton) {
                     start.linkTo(previousButton.end)
                     end.linkTo(nextButton.start)
@@ -194,8 +240,8 @@ fun NowPlayingScreen(
                 repeatButton,
                 chainStyle = ChainStyle.SpreadInside
             )
-
         }
+
     }
 }
 

@@ -3,7 +3,7 @@ package com.rickinc.decibels.nowplaying
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.rickinc.decibels.domain.model.Track
-import com.rickinc.decibels.presentation.nowplaying.NowPlayingUiState
+import com.rickinc.decibels.presentation.nowplaying.NowPlayingState
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Before
@@ -25,7 +25,7 @@ class NowPlayingRenderTest {
     }
 
     private val track = Track.getSingleTrack()
-    private val uiState = NowPlayingUiState(track)
+    private val uiState = NowPlayingState.TrackLoaded(track)
 
     @Test
     fun displayNowPlayingTopAppBar() {

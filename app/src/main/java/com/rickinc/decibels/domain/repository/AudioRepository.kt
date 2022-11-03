@@ -5,4 +5,5 @@ import com.rickinc.decibels.domain.model.Track
 
 interface AudioRepository {
     suspend fun getAudioFiles(): Result<List<Track>>
+    suspend fun getSingleAudioFile(trackId: String): Result<Track>
 }

@@ -84,7 +84,8 @@ fun TrackListBody(
 
         when (screenState) {
             is TrackListState.DataLoaded -> TrackList(screenState.tracks, onTrackItemClick)
-            else -> InfoText(R.string.error_loading_audio_files)
+            is TrackListState.Error -> InfoText(R.string.error_loading_audio_files)
+            else -> {}
         }
 
     }

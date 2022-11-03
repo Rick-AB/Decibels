@@ -37,13 +37,22 @@ fun ScreenContent(navController: NavHostController) {
         popExitTransition = { ExitTransition.None }
     ) {
         composable(Screen.FullScreen.TrackListScreen.route()) {
-            TrackListScreen(navBackStackEntry = it) {
-                navController.navigate(Screen.FullScreen.NowPlayingScreen.route())
+            TrackListScreen(navBackStackEntry = it) { track ->
+                navController.navigate(
+                    Screen.FullScreen.NowPlayingScreen.buildRoute(
+                        listOf(track.trackId.toString())
+                    )
+                )
             }
         }
 
-        composable(Screen.FullScreen.NowPlayingScreen.route()) {
-            NowPlayingScreen()
+        composable(
+            Screen.FullScreen.NowPlayingScreen.route(),
+            arguments = Screen.FullScreen.NowPlayingScreen.getArguments()
+        ) {
+            NowPlayingScreen(it) {
+                navController.popBackStack()
+            }
         }
     }
 }

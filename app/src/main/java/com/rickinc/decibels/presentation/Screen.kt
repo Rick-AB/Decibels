@@ -17,7 +17,12 @@ sealed class Screen(
     ) : Screen(name, argumentList) {
 
         object TrackListScreen : FullScreen("Track list")
-        object NowPlayingScreen : FullScreen("Now playing")
+        object NowPlayingScreen : FullScreen(
+            name = "Now playing",
+            argumentList = listOf(
+                ScreenArg(TRACK_ID, ArgType.STRING)
+            )
+        )
     }
 
     init {
@@ -64,9 +69,8 @@ sealed class Screen(
             return screen
         }
 
-        const val CONVERSATION_ID_ARG_KEY = "conversationID"
-        const val CONVERSATION_NAME_ARG_KEY = "conversationName"
-        const val CONVERSATION_PIC_URL_ARG_KEY = "conversationPic"
+        const val TRACK_ID = "trackID"
+
     }
 }
 

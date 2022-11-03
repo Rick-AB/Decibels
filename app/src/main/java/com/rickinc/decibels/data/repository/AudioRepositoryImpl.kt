@@ -10,12 +10,12 @@ import android.os.Build
 import android.provider.MediaStore
 import android.util.Size
 import androidx.annotation.RequiresApi
-import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Result
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.AudioRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.IOException
 
 class AudioRepositoryImpl(
@@ -66,11 +66,78 @@ class AudioRepositoryImpl(
                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                         id
                     )
+                    val thumbnail = getThumbnailAfterQ(contentUri)
 
-                    list.add(Track(id, title, duration, artist, albumId, contentUri, null))
+                    list.add(Track(id, title, duration, artist, albumId, contentUri, thumbnail))
                 }
             }
             Result.Success(list)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    override suspend fun getSingleAudioFile(trackId: String): Result<Track> {
+        return withContext(Dispatchers.IO) {
+            var track: Track? = null
+            val collection =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+                } else {
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                }
+
+            val projection = arrayOf(
+                MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.DISPLAY_NAME,
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media.ARTIST,
+                MediaStore.Audio.Media.DATA
+            )
+
+            val selection =
+                MediaStore.Audio.Media.IS_MUSIC + "!= 0 AND " + "${MediaStore.Audio.Media._ID} = ?"
+
+            val selectionArgs = arrayOf(trackId)
+            val sortOrder = null
+            val query = context.contentResolver.query(
+                collection,
+                projection,
+                selection,
+                selectionArgs,
+                sortOrder
+            )
+
+            query?.use { cursor ->
+                val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+                val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+                val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+                val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+
+                while (cursor.moveToNext()) {
+                    val audioFilePath = cursor.getString(pathColumn)
+                    if (!File(audioFilePath).exists()) {
+                        return@withContext Result.Error("File not found")
+                    }
+
+                    val id = cursor.getLong(idColumn)
+                    val duration = cursor.getInt(durationColumn)
+                    val title = cursor.getString(titleColumn)
+                    val artist = cursor.getString(artistColumn)
+                    val albumId = cursor.getLong(albumIdColumn)
+                    val contentUri: Uri = ContentUris.withAppendedId(
+                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                        id
+                    )
+                    val thumbnail = getThumbnailAfterQ(contentUri)
+
+                    track = Track(id, title, duration, artist, albumId, contentUri, thumbnail)
+                }
+            }
+            Result.Success(track!!)
         }
     }
 
@@ -87,14 +154,15 @@ class AudioRepositoryImpl(
         }
     }
 
-    private fun getAlbumArt(context: Context, uri: Uri): Bitmap {
+    private fun getAlbumArt(context: Context, uri: Uri): Bitmap? {
+        //            BitmapFactory.decodeResource(context.resources, R.drawable.ic_baseline_audio_file_24)
         val mmr = MediaMetadataRetriever()
         mmr.setDataSource(context, uri)
         val data = mmr.embeddedPicture
         return if (data != null) {
             BitmapFactory.decodeByteArray(data, 0, data.size)
         } else {
-            BitmapFactory.decodeResource(context.resources, R.drawable.ic_baseline_audio_file_24)
+            null
         }
     }
 }
