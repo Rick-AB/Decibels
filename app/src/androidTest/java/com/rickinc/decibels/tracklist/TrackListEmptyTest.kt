@@ -54,7 +54,7 @@ class TrackListEmptyTest {
     }
 
     class TestAudioEmptyRepository : AudioRepository {
-        override fun getAudioFiles(): Result<List<Track>> {
+        override suspend fun getAudioFiles(): Result<List<Track>> {
             return Result.Success(emptyList())
         }
 

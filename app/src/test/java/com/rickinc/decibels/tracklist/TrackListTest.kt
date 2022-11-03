@@ -24,6 +24,7 @@ class TrackListTest {
     fun getAudioFiles_ifNoErrors_stateShouldBeDataLoaded() {
         val viewModel = TrackListViewModel(TestAudioRepository())
         viewModel.getAudioFiles()
+        runCoroutine()
 
         val tracks = Track.getUniqueTrackList()
         val expectedState = TrackListState.DataLoaded(tracks)
@@ -38,6 +39,7 @@ class TrackListTest {
 
         val viewModel = TrackListViewModel(repo)
         viewModel.getAudioFiles()
+        runCoroutine()
 
         val expectedState = TrackListState.Error("Error reading audio files")
         val actualState = viewModel.uiState.value
@@ -65,4 +67,6 @@ class TrackListTest {
         val actualState = viewModel.nowPlayingTrack.value
         assertEquals(newSelectedTrack, actualState)
     }
+
+    private fun runCoroutine() = coroutineTestRule.testDispatcher.scheduler.runCurrent()
 }

@@ -1,13 +1,14 @@
 package com.rickinc.decibels.presentation.tracklist
 
 import androidx.lifecycle.ViewModel
-import com.rickinc.decibels.domain.repository.AudioRepository
+import androidx.lifecycle.viewModelScope
 import com.rickinc.decibels.domain.model.Track
+import com.rickinc.decibels.domain.repository.AudioRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import timber.log.Timber
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,15 +23,17 @@ class TrackListViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     fun getAudioFiles() {
-        val result = audioRepo.getAudioFiles()
-        Timber.d("RESULT--- $result")
-        result.fold(
-            onSuccess = { tracks ->
-                _uiState.update { TrackListState.DataLoaded(tracks) }
-            },
-            onFailure = { error ->
-                _uiState.update { TrackListState.Error(error.errorMessage) }
-            })
+        viewModelScope.launch {
+            val result = audioRepo.getAudioFiles()
+            result.fold(
+                onSuccess = { tracks ->
+                    _uiState.update { TrackListState.DataLoaded(tracks) }
+                },
+                onFailure = { error ->
+                    _uiState.update { TrackListState.Error(error.errorMessage) }
+                }
+            )
+        }
     }
 
     fun setNowPlaying(selectedTrack: Track) {

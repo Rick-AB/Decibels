@@ -6,7 +6,7 @@ import com.rickinc.decibels.domain.model.Track
 
 class TestAudioRepository : AudioRepository {
     var shouldThrowException: Boolean = false
-    override fun getAudioFiles(): Result<List<Track>> {
+    override suspend fun getAudioFiles(): Result<List<Track>> {
         return if (shouldThrowException) Result.Error("Error reading audio files")
         else Result.Success(Track.getUniqueTrackList())
     }

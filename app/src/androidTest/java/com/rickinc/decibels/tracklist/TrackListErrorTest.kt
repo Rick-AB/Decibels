@@ -54,7 +54,7 @@ class TrackListErrorTest {
     }
 
     class TestAudioErrorRepository : AudioRepository {
-        override fun getAudioFiles(): Result<List<Track>> {
+        override suspend fun getAudioFiles(): Result<List<Track>> {
             return Result.Error("Failed to load audio files")
         }
 
