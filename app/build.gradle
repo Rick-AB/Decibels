@@ -80,6 +80,7 @@ dependencies {
     // media3
     implementation 'androidx.media3:media3-exoplayer:1.0.0-beta02'
     implementation 'androidx.media3:media3-ui:1.0.0-beta02'
+    implementation 'androidx.media3:media3-session:1.0.0-beta02'
 
     kaptAndroidTest 'com.google.dagger:hilt-android-compiler:2.44'
     testImplementation 'junit:junit:4.13.2'
