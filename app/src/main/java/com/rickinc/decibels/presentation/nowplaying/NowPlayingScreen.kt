@@ -1,6 +1,7 @@
 package com.rickinc.decibels.presentation.nowplaying
 
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Slider
-import androidx.compose.material.SliderColors
 import androidx.compose.material.SliderDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -35,23 +35,35 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.C
+import androidx.media3.session.MediaController
 import androidx.navigation.NavBackStackEntry
 import com.rickinc.decibels.R
+import com.rickinc.decibels.domain.model.Track
+import com.rickinc.decibels.domain.util.TrackConverter
 import com.rickinc.decibels.presentation.Screen
+import com.rickinc.decibels.presentation.tracklist.TrackListViewModel
 import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
+import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.ui.theme.Typography
 import com.rickinc.decibels.presentation.util.formatTrackDuration
 import timber.log.Timber
 
 @Composable
 fun NowPlayingScreen(navBackStackEntry: NavBackStackEntry, goBack: () -> Unit) {
-    val viewModel: NowPlayingViewModel = hiltViewModel(navBackStackEntry)
     val trackId = navBackStackEntry.arguments?.getString(Screen.TRACK_ID)
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val context = LocalContext.current
+    val mediaController = LocalController.current
+    val trackListViewModel: TrackListViewModel = hiltViewModel(context as ComponentActivity)
+    val nowPlayingViewModel: NowPlayingViewModel = hiltViewModel(context)
+    val uiState = nowPlayingViewModel.uiState.collectAsStateWithLifecycle().value
+
 
     LaunchedEffect(key1 = trackId) {
-        trackId?.let(viewModel::setSelectedTrack)
+        val indexOfSelected = trackListViewModel.getIndexOfTrack(trackId!!.toLong())
+        mediaController?.seekTo(indexOfSelected, C.TIME_UNSET)
+        mediaController?.prepare()
+        mediaController?.play()
     }
 
     when (uiState) {
@@ -75,6 +87,7 @@ fun NowPlayingScreen(
                 .fillMaxSize()
                 .padding(horizontal = 35.dp)
         ) {
+            val controller = LocalController.current
             val (albumArtComposable, trackNameComposable, artistComposable,
                 currentDurationComposable, trackDurationComposable, seekBar, previousButton,
                 nextButton, playPauseButton, shuffleButton, repeatButton) = createRefs()
@@ -111,7 +124,7 @@ fun NowPlayingScreen(
                 )
             }
 
-            val trackName = uiState.currentTrack.trackName
+            val trackName = uiState.currentTrack.trackTitle
             Text(
                 text = trackName,
                 style = Typography.titleMedium,
@@ -205,6 +218,9 @@ fun NowPlayingScreen(
                     start.linkTo(previousButton.end)
                     end.linkTo(nextButton.start)
                     top.linkTo(seekBar.bottom, 16.dp)
+                },
+                onClick = {
+                    playTrack(controller, uiState.currentTrack)
                 }
             )
 
@@ -245,6 +261,13 @@ fun NowPlayingScreen(
     }
 }
 
+private fun playTrack(controller: MediaController?, currentTrack: Track) {
+    val mediaItem = TrackConverter().toMediaItem(currentTrack)
+    controller?.addMediaItem(mediaItem)
+    controller?.prepare()
+    controller?.play()
+}
+
 @Composable
 fun NowPlayingControlButton(
     @DrawableRes iconRes: Int,
@@ -267,10 +290,11 @@ fun NowPlayingControlButton(
     @StringRes contentDesc: Int,
     size: Dp = 24.dp,
     backgroundColor: Color,
-    modifier: Modifier
+    modifier: Modifier,
+    onClick: () -> Unit = {}
 ) {
     IconButton(
-        onClick = { /*TODO*/ },
+        onClick = onClick,
         modifier = modifier.background(backgroundColor, CircleShape)
     ) {
         Icon(

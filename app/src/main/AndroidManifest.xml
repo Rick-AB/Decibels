@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    
+
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".DecibelsApplication"
@@ -16,10 +18,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Decibels"
         tools:targetApi="31">
+
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"
             android:label="@string/appName"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.Decibels">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,6 +35,16 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+
+        <service
+            android:name=".domain.service.DecibelPlaybackService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

@@ -37,7 +37,7 @@ fun ScreenContent(navController: NavHostController) {
         popExitTransition = { ExitTransition.None }
     ) {
         composable(Screen.FullScreen.TrackListScreen.route()) {
-            TrackListScreen(navBackStackEntry = it) { track ->
+            TrackListScreen { track ->
                 navController.navigate(
                     Screen.FullScreen.NowPlayingScreen.buildRoute(
                         listOf(track.trackId.toString())

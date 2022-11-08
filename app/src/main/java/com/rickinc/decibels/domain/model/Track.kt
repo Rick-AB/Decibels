@@ -1,17 +1,15 @@
 package com.rickinc.decibels.domain.model
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import com.rickinc.decibels.R
 
 
 data class Track(
     val trackId: Long,
-    val trackName: String,
+    val trackTitle: String,
     val trackLength: Int,
     val artist: String,
     val albumId: Long,

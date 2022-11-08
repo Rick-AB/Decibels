@@ -1,6 +1,7 @@
 package com.rickinc.decibels.presentation.tracklist
 
 import android.Manifest
+import androidx.activity.ComponentActivity
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -27,17 +29,18 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.navigation.NavBackStackEntry
+import androidx.media3.common.MediaItem
 import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.ui.components.accomponistpermision.rememberPermissionState
 import com.rickinc.decibels.presentation.ui.components.isPermanentlyDenied
+import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.ui.theme.Typography
 import com.rickinc.decibels.presentation.util.formatTrackDuration
 
 @Composable
-fun TrackListScreen(navBackStackEntry: NavBackStackEntry, onTrackItemClick: (Track) -> Unit) {
+fun TrackListScreen(onTrackItemClick: (Track) -> Unit) {
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = { TrackListTopAppBar() }) { padding ->
         val storagePermission =
             rememberPermissionState(permission = Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -59,7 +62,6 @@ fun TrackListScreen(navBackStackEntry: NavBackStackEntry, onTrackItemClick: (Tra
         when {
             storagePermission.hasPermission -> TrackListBody(
                 padding,
-                navBackStackEntry,
                 onTrackItemClick
             )
             storagePermission.shouldShowRationale -> PermissionRequiredBody()
@@ -71,11 +73,10 @@ fun TrackListScreen(navBackStackEntry: NavBackStackEntry, onTrackItemClick: (Tra
 @Composable
 fun TrackListBody(
     innerPadding: PaddingValues,
-    navBackStackEntry: NavBackStackEntry,
     onTrackItemClick: (Track) -> Unit
 ) {
     Box(modifier = Modifier.padding(innerPadding)) {
-        val viewModel: TrackListViewModel = hiltViewModel(navBackStackEntry)
+        val viewModel: TrackListViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
         val screenState = viewModel.uiState.collectAsState().value
 
         LaunchedEffect(key1 = Unit) {
@@ -83,7 +84,11 @@ fun TrackListBody(
         }
 
         when (screenState) {
-            is TrackListState.DataLoaded -> TrackList(screenState.tracks, onTrackItemClick)
+            is TrackListState.DataLoaded -> TrackList(
+                tracks = screenState.tracks,
+                getMediaItems = viewModel::getMediaItems,
+                onTrackItemClick = onTrackItemClick
+            )
             is TrackListState.Error -> InfoText(R.string.error_loading_audio_files)
             else -> {}
         }
@@ -97,10 +102,15 @@ fun TrackListTopAppBar() {
 }
 
 @Composable
-fun TrackList(tracks: List<Track>, onTrackItemClick: (Track) -> Unit) {
+fun TrackList(
+    tracks: List<Track>,
+    getMediaItems: (List<Track>) -> List<MediaItem>,
+    onTrackItemClick: (Track) -> Unit
+) {
     if (tracks.isEmpty()) InfoText(stringResource = R.string.empty_track_list)
     else {
         val trackContentDescription = stringResource(id = R.string.track_list)
+        val mediaController = LocalController.current
         LazyColumn(modifier = Modifier
             .fillMaxSize()
             .semantics {
@@ -109,6 +119,8 @@ fun TrackList(tracks: List<Track>, onTrackItemClick: (Track) -> Unit) {
         ) {
             items(tracks, key = { it.trackId }) {
                 TrackItem(track = it) {
+                    val mediaItems = getMediaItems(tracks)
+                    mediaController?.setMediaItems(mediaItems)
                     onTrackItemClick(it)
                 }
             }
@@ -126,7 +138,7 @@ fun TrackItem(track: Track, onClick: () -> Unit) {
             .padding(start = 16.dp, end = 16.dp, top = 8.dp),
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = track.trackName, style = Typography.titleMedium, maxLines = 1)
+            Text(text = track.trackTitle, style = Typography.titleMedium, maxLines = 1)
 
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = track.artist, style = Typography.bodySmall, maxLines = 1)

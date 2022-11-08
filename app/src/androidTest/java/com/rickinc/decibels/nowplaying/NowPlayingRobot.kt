@@ -57,7 +57,7 @@ class NowPlayingVerification(
     }
 
     fun trackInfoIsDisplayed(track: Track) {
-        rule.onNodeWithText(track.trackName)
+        rule.onNodeWithText(track.trackTitle)
             .assertIsDisplayed()
 
         rule.onNodeWithText(track.artist)

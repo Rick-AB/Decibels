@@ -3,7 +3,7 @@ package com.rickinc.decibels.presentation
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.rickinc.decibels.domain.UrlEncoder
+import com.rickinc.decibels.domain.util.UrlEncoder
 
 sealed class Screen(
     private val id: String,
