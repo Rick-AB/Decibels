@@ -50,7 +50,7 @@ fun ScreenContent(navController: NavHostController) {
             Screen.FullScreen.NowPlayingScreen.route(),
             arguments = Screen.FullScreen.NowPlayingScreen.getArguments()
         ) {
-            NowPlayingScreen(it) {
+            NowPlayingScreen {
                 navController.popBackStack()
             }
         }

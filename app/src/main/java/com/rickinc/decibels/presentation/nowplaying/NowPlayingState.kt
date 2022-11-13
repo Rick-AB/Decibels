@@ -7,8 +7,9 @@ sealed interface NowPlayingState {
     data class TrackLoaded(
         val currentTrack: Track,
         val isPlaying: Boolean,
-        val repeatMode: NowPlayingViewModel.RepeatMode,
-        val isShuffleActive: Boolean
+        val repeatMode: Int,
+        val isShuffleActive: Boolean,
+        val progress: Long
     ) : NowPlayingState
 
     data class ErrorLoadingTrack(val error: Result.Error) : NowPlayingState

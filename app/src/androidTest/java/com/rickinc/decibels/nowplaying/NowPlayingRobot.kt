@@ -1,24 +1,31 @@
 package com.rickinc.decibels.nowplaying
 
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.media3.session.MediaController
 import androidx.test.ext.junit.rules.ActivityScenarioRule
-import com.rickinc.decibels.presentation.nowplaying.NowPlayingScreen
 import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Track
+import com.rickinc.decibels.presentation.nowplaying.NowPlayingScreen
 import com.rickinc.decibels.presentation.nowplaying.NowPlayingState
+import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.util.formatTrackDuration
 
 fun launchNowPlayingScreen(
     rule: AndroidComposeTestRule<ActivityScenarioRule<ComponentActivity>, ComponentActivity>,
     uiState: NowPlayingState.TrackLoaded,
+    controller: MediaController,
     block: NowPlayingRobot.() -> Unit
 ): NowPlayingRobot {
     rule.setContent {
-        NowPlayingScreen(uiState)
+        CompositionLocalProvider(LocalController provides controller) {
+            NowPlayingScreen(uiState)
+        }
+
     }
     return NowPlayingRobot(rule).apply(block)
 }

@@ -16,6 +16,7 @@ class TrackConverter @Inject constructor() {
         const val TRACK_LENGTH_KEY = "track_length"
         const val ALBUM_ID_KEY = "album_id"
         const val THUMBNAIL_KEY = "thumbnail"
+        const val MP3 = "mp3"
     }
 
     fun toMediaItem(track: Track): MediaItem {
@@ -23,6 +24,7 @@ class TrackConverter @Inject constructor() {
         extra.putString(CONTENT_URI_KEY, track.contentUri.toString())
         extra.putInt(TRACK_LENGTH_KEY, track.trackLength)
         extra.putLong(ALBUM_ID_KEY, track.albumId)
+        extra.putString(MP3, track.mimeType)
         extra.putParcelable(THUMBNAIL_KEY, track.thumbnail)
 
         val mediaMetadata =
@@ -33,7 +35,10 @@ class TrackConverter @Inject constructor() {
                 .build()
 
         val trackId = track.trackId.toString()
-        return MediaItem.Builder().setMediaMetadata(mediaMetadata).setMediaId(trackId).build()
+        return MediaItem.Builder()
+            .setMediaMetadata(mediaMetadata)
+            .setMediaId(trackId)
+            .build()
     }
 
     fun toMediaItems(tracks: List<Track>): List<MediaItem> {
@@ -60,8 +65,18 @@ class TrackConverter @Inject constructor() {
         } else {
             bundle.getParcelable(THUMBNAIL_KEY)
         }
+        val mimeType = bundle.getString(MP3)
 
-        return Track(trackId, trackTitle, trackLength, artist, albumId, contentUri, thumbnail)
+        return Track(
+            trackId,
+            trackTitle,
+            trackLength,
+            artist,
+            albumId,
+            contentUri,
+            thumbnail,
+            mimeType
+        )
     }
 }
 

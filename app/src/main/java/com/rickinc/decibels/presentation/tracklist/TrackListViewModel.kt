@@ -54,7 +54,15 @@ class TrackListViewModel @Inject constructor(
         return trackConverter.toMediaItems(tracks)
     }
 
+    fun getMediaItems(): List<MediaItem> {
+        return trackConverter.toMediaItems(tracks)
+    }
+
     fun getIndexOfTrack(trackId: Long): Int {
         return tracks.indexOfFirst { it.trackId == trackId }
+    }
+
+    fun getTrack(trackId: Long): Track? {
+        return tracks.find { it.trackId == trackId }
     }
 }

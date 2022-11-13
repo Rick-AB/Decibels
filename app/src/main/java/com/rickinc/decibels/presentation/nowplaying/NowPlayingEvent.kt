@@ -9,4 +9,5 @@ sealed class NowPlayingEvent {
     data class OnShuffleActiveChanged(val shuffleActive: Boolean) : NowPlayingEvent()
     data class OnRepeatModeChanged(val repeatMode: Int) : NowPlayingEvent()
     data class OnError(val error: PlaybackException?) : NowPlayingEvent()
+    data class OnProgressChanged(val progress: Long) : NowPlayingEvent()
 }

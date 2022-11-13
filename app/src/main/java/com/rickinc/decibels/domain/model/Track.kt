@@ -14,13 +14,14 @@ data class Track(
     val artist: String,
     val albumId: Long,
     val contentUri: Uri?,
-    val thumbnail: Bitmap?
+    val thumbnail: Bitmap?,
+    val mimeType: String?
 ) {
     companion object {
         fun getUniqueTrackList(): List<Track> {
-            val track1 = Track(0, "Pride is the devil", 40000, "J.Cole", 4L, Uri.EMPTY, null)
-            val track2 = Track(1, "Clouds", 40000, "NF", 5L, Uri.EMPTY, null)
-            val track3 = Track(2, "Trust", 40000, "NF", 6L, Uri.EMPTY, null)
+            val track1 = Track(0, "Pride is the devil", 40000, "J.Cole", 4L, Uri.EMPTY, null, null)
+            val track2 = Track(1, "Clouds", 40000, "NF", 5L, Uri.EMPTY, null, null)
+            val track3 = Track(2, "Trust", 40000, "NF", 6L, Uri.EMPTY, null, null)
             return listOf(track1, track2, track3)
         }
 

@@ -9,12 +9,15 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Size
+import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
 import com.rickinc.decibels.domain.model.Result
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.AudioRepository
+import com.rickinc.decibels.domain.util.TrackConverter.Companion.MP3
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import java.io.IOException
 
@@ -67,8 +70,23 @@ class AudioRepositoryImpl(
                         id
                     )
                     val thumbnail = getThumbnailAfterQ(contentUri)
+                    val mimeType = MimeTypeMap.getSingleton()
+                        .getExtensionFromMimeType(context.contentResolver.getType(contentUri))
 
-                    list.add(Track(id, title, duration, artist, albumId, contentUri, thumbnail))
+                    if (mimeType == MP3) {
+                        list.add(
+                            Track(
+                                trackId = id,
+                                trackTitle = title,
+                                trackLength = duration,
+                                artist = artist,
+                                albumId = albumId,
+                                contentUri = contentUri,
+                                thumbnail = thumbnail,
+                                mimeType = mimeType
+                            )
+                        )
+                    }
                 }
             }
             Result.Success(list)
@@ -134,7 +152,7 @@ class AudioRepositoryImpl(
                     )
                     val thumbnail = getThumbnailAfterQ(contentUri)
 
-                    track = Track(id, title, duration, artist, albumId, contentUri, thumbnail)
+                    track = Track(id, title, duration, artist, albumId, contentUri, thumbnail, null)
                 }
             }
             Result.Success(track!!)

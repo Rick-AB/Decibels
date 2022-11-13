@@ -1,6 +1,10 @@
 package com.rickinc.decibels.domain.service
 
+import android.content.Intent
+import android.net.Uri
+import android.service.media.MediaBrowserService
 import androidx.core.app.NotificationCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -14,6 +18,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.util.TrackConverter.Companion.CONTENT_URI_KEY
+import com.rickinc.decibels.presentation.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -35,6 +40,7 @@ class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
 
     private fun initMediaSession() {
         mediaSession = MediaSession.Builder(this, player).setCallback(this).build()
+        initListener()
     }
 
     private fun setPlayerAttributes() {
@@ -67,6 +73,18 @@ class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
         notificationManager.setUseFastForwardAction(false)
     }
 
+    private fun initListener() {
+        player.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                super.onPlaybackStateChanged(playbackState)
+                val intent = Intent(MainActivity.PLAYER_EVENT_INTENT).apply {
+                    putExtra(MainActivity.PLAYER_EVENT, playbackState)
+                }
+                LocalBroadcastManager.getInstance(this@DecibelPlaybackService).sendBroadcast(intent)
+            }
+        })
+    }
+
     override fun onAddMediaItems(
         mediaSession: MediaSession,
         controller: MediaSession.ControllerInfo,
@@ -76,7 +94,7 @@ class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
             mediaItems.map { mediaItem ->
                 val extra = mediaItem.mediaMetadata.extras
                 val uri = extra?.getString(CONTENT_URI_KEY)
-                mediaItem.buildUpon().setUri(uri).build()
+                mediaItem.buildUpon().setUri(Uri.parse(uri)).build()
             }.toMutableList()
 
         return Futures.immediateFuture(updatedMediaItems)

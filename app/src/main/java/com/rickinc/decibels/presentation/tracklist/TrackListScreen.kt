@@ -6,7 +6,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -30,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.MediaItem
+import androidx.media3.session.MediaController
 import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
@@ -38,6 +39,7 @@ import com.rickinc.decibels.presentation.ui.components.isPermanentlyDenied
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.ui.theme.Typography
 import com.rickinc.decibels.presentation.util.formatTrackDuration
+import timber.log.Timber
 
 @Composable
 fun TrackListScreen(onTrackItemClick: (Track) -> Unit) {
@@ -87,6 +89,7 @@ fun TrackListBody(
             is TrackListState.DataLoaded -> TrackList(
                 tracks = screenState.tracks,
                 getMediaItems = viewModel::getMediaItems,
+                getMediaItem = viewModel::getMediaItem,
                 onTrackItemClick = onTrackItemClick
             )
             is TrackListState.Error -> InfoText(R.string.error_loading_audio_files)
@@ -105,6 +108,7 @@ fun TrackListTopAppBar() {
 fun TrackList(
     tracks: List<Track>,
     getMediaItems: (List<Track>) -> List<MediaItem>,
+    getMediaItem: (Track) -> MediaItem,
     onTrackItemClick: (Track) -> Unit
 ) {
     if (tracks.isEmpty()) InfoText(stringResource = R.string.empty_track_list)
@@ -117,15 +121,35 @@ fun TrackList(
                 contentDescription = trackContentDescription
             }
         ) {
-            items(tracks, key = { it.trackId }) {
-                TrackItem(track = it) {
-                    val mediaItems = getMediaItems(tracks)
-                    mediaController?.setMediaItems(mediaItems)
-                    onTrackItemClick(it)
+            itemsIndexed(tracks, key = { _, track -> track.trackId }) { index, track ->
+                TrackItem(track = track) {
+                    playTrack(mediaController, getMediaItem(track))
+                    addPlaylist(mediaController, index, tracks, getMediaItems)
+                    onTrackItemClick(track)
                 }
             }
         }
     }
+}
+
+private fun playTrack(mediaController: MediaController?, mediaItem: MediaItem) {
+    mediaController?.clearMediaItems()
+    mediaController?.setMediaItem(mediaItem)
+    mediaController?.prepare()
+    mediaController?.play()
+}
+
+private fun addPlaylist(
+    mediaController: MediaController?,
+    currentTrackIndex: Int,
+    tracks: List<Track>,
+    getMediaItems: (List<Track>) -> List<MediaItem>
+) {
+    val subListBeforeCurrent = tracks.subList(0, currentTrackIndex)
+    mediaController?.addMediaItems(0, getMediaItems(subListBeforeCurrent))
+
+    val subListAfterCurrent = tracks.subList(currentTrackIndex + 1, tracks.lastIndex)
+    mediaController?.addMediaItems(getMediaItems(subListAfterCurrent))
 }
 
 @Composable
