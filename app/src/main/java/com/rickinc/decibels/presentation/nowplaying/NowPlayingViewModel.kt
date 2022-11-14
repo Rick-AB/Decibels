@@ -9,8 +9,6 @@ import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.util.TrackConverter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -71,8 +69,6 @@ class NowPlayingViewModel @Inject constructor(
             is NowPlayingEvent.OnShuffleActiveChanged -> isShuffleActiveFlow.update { event.shuffleActive }
             is NowPlayingEvent.OnError -> errorFlow.update { event.error }
             is NowPlayingEvent.OnProgressChanged -> progressFlow.update { event.progress }
-
-
         }
     }
 }

@@ -1,10 +1,7 @@
 package com.rickinc.decibels.presentation
 
 import android.content.*
-import android.os.Build
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -16,11 +13,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
+import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -30,23 +27,29 @@ import com.rickinc.decibels.presentation.nowplaying.NowPlayingViewModel
 import com.rickinc.decibels.presentation.ui.theme.DecibelsTheme
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private lateinit var broadcastReceiver: BroadcastReceiver
+    private lateinit var player: Player
+    private lateinit var decibelService: DecibelPlaybackService
     private lateinit var controllerFuture: ListenableFuture<MediaController>
     private var controller by mutableStateOf<MediaController?>(null)
+    private var bound: Boolean = false
 
     private val nowPlayingViewModel: NowPlayingViewModel by viewModels()
     private val handler = Handler(Looper.getMainLooper())
-
-
     private val updateNowPlayingAction = Runnable { updateNowPlayingProgress() }
+    private val connection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
+            val binder = DecibelPlaybackService.binder as DecibelPlaybackService.LocalBinder
+            decibelService = binder.getService()
+            player = decibelService.player
+            bound = true
+        }
 
-    companion object {
-        const val PLAYER_EVENT_INTENT = "player_event_intent"
-        const val PLAYER_EVENT = "player_event_receiver"
+        override fun onServiceDisconnected(p0: ComponentName?) {
+            bound = false
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,35 +63,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
-        broadcastReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                val playbackState = intent?.extras?.getInt(PLAYER_EVENT)
-                handler.postDelayed(object : Runnable {
-                    override fun run() {
-                        val currentPos = (controller?.currentPosition ?: 0)
-                        val duration = controller?.duration ?: 0
-                        val progress = (currentPos.times(100)).div(duration)
-                        nowPlayingViewModel.onEvent(NowPlayingEvent.OnProgressChanged(currentPos))
-
-                        handler.removeCallbacks(this)
-                        // Schedule an update if necessary.
-                        if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
-                            var delayMs: Long
-                            if (controller?.playWhenReady!! && playbackState == Player.STATE_READY) {
-                                delayMs = 1000 - progress % 1000
-                                if (delayMs < 200) {
-                                    delayMs += 1000
-                                }
-                            } else {
-                                delayMs = 1000
-                            }
-                            handler.postDelayed(this, delayMs)
-                        }
-                    }
-                }, 1000)
-            }
-        }
     }
 
     private fun initializeController() {
@@ -99,19 +73,12 @@ class MainActivity : ComponentActivity() {
         controllerFuture.addListener({
             controller = controllerFuture.get()
             setControllerListener()
+            setPlayerListener()
         }, MoreExecutors.directExecutor())
     }
 
-    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     private fun setControllerListener() {
-        val listener = object : Player.Listener {
-
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                super.onPlaybackStateChanged(playbackState)
-                getPlaybackStateName(playbackState)
-//                updateNowPlayingProgress()
-            }
-
+        controller?.addListener(object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 super.onMediaItemTransition(mediaItem, reason)
                 nowPlayingViewModel.onEvent(
@@ -123,7 +90,6 @@ class MainActivity : ComponentActivity() {
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
-                Timber.d("onIsPlayingChanged ${controller?.currentPosition}")
                 nowPlayingViewModel.onEvent(
                     NowPlayingEvent.OnIsPlayingChanged(
                         controller?.isPlaying ?: false
@@ -149,31 +115,40 @@ class MainActivity : ComponentActivity() {
                 super.onPlayerErrorChanged(error)
                 nowPlayingViewModel.onEvent(NowPlayingEvent.OnError(error))
             }
-        }
-        controller?.addListener(listener)
+        })
+    }
+
+    private fun setPlayerListener() {
+        player.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                super.onPlaybackStateChanged(playbackState)
+                getPlaybackStateName(playbackState)
+                updateNowPlayingProgress()
+            }
+        })
     }
 
     private fun updateNowPlayingProgress() {
-//        val currentPos = (controller?.currentPosition ?: 0)
-//        val duration = controller?.duration ?: 0
-//        val progress = (currentPos.times(100)).div(duration)
-//        nowPlayingViewModel.onEvent(NowPlayingEvent.OnProgressChanged(currentPos))
-//
-//        handler.removeCallbacks(updateNowPlayingAction)
-//        // Schedule an update if necessary.
-//        val playbackState = controller?.playbackState ?: Player.STATE_IDLE
-//        if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
-//            var delayMs: Long
-//            if (controller?.playWhenReady!! && playbackState == Player.STATE_READY) {
-//                delayMs = 1000 - progress % 1000
-//                if (delayMs < 200) {
-//                    delayMs += 1000
-//                }
-//            } else {
-//                delayMs = 1000
-//            }
-//            handler.postDelayed(updateNowPlayingAction, delayMs)
-//        }
+        val currentPos = player.currentPosition
+        val duration = player.duration
+        val progress = (currentPos.times(100)).div(duration)
+        nowPlayingViewModel.onEvent(NowPlayingEvent.OnProgressChanged(currentPos))
+
+        handler.removeCallbacks(updateNowPlayingAction)
+        // Schedule an update if necessary.
+        val playbackState = player.playbackState
+        if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
+            var delayMs: Long
+            if (player.playWhenReady && playbackState == Player.STATE_READY) {
+                delayMs = 1000 - progress % 1000
+                if (delayMs < 200) {
+                    delayMs += 1000
+                }
+            } else {
+                delayMs = 1000
+            }
+            handler.postDelayed(updateNowPlayingAction, delayMs)
+        }
     }
 
     private fun getPlaybackStateName(i: Int): String? {
@@ -194,16 +169,16 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         initializeController()
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-            broadcastReceiver, IntentFilter(
-                PLAYER_EVENT_INTENT
-            )
-        )
+        Intent(this, DecibelPlaybackService::class.java).also { intent ->
+            intent.action = MediaSessionService.SERVICE_INTERFACE
+            bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        }
     }
 
     override fun onStop() {
         MediaController.releaseFuture(controllerFuture)
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver)
+        unbindService(connection)
+        bound = false
         super.onStop()
     }
 }

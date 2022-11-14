@@ -1,7 +1,5 @@
 package com.rickinc.decibels.presentation.nowplaying
 
-import android.os.Handler
-import android.os.Looper
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.DrawableRes
@@ -14,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.DropdownMenu
 import androidx.compose.material.Slider
 import androidx.compose.material.SliderDefaults
 import androidx.compose.material.icons.Icons
@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -39,8 +38,6 @@ import androidx.constraintlayout.compose.ChainStyle
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
@@ -50,7 +47,6 @@ import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.ui.theme.Typography
 import com.rickinc.decibels.presentation.util.formatTrackDuration
-import timber.log.Timber
 
 
 @Composable
@@ -59,7 +55,7 @@ fun NowPlayingScreen(goBack: () -> Unit) {
     val nowPlayingViewModel: NowPlayingViewModel = hiltViewModel(context as ComponentActivity)
 
     when (val uiState = nowPlayingViewModel.uiState.collectAsStateWithLifecycle().value) {
-        is NowPlayingState.TrackLoaded -> NowPlayingScreen(uiState = uiState)
+        is NowPlayingState.TrackLoaded -> NowPlayingScreen(uiState = uiState, goBack = goBack)
         is NowPlayingState.ErrorLoadingTrack -> {
             Toast.makeText(context, uiState.error.errorMessage, Toast.LENGTH_LONG).show()
             goBack()
@@ -72,16 +68,12 @@ fun NowPlayingScreen(goBack: () -> Unit) {
 @Composable
 fun NowPlayingScreen(
     uiState: NowPlayingState.TrackLoaded,
+    goBack: () -> Unit
 ) {
     val defaultBackgroundColor = MaterialTheme.colorScheme.background
     val defaultColor = MaterialTheme.colorScheme.primary
     val trackThumbnail = uiState.currentTrack.thumbnail
-    val lifecycleOwner = LocalLifecycleOwner.current
     val controller = LocalController.current
-    val context = LocalContext.current
-    val nowPlayingViewModel: NowPlayingViewModel = hiltViewModel(context as ComponentActivity)
-    val handler = Handler(Looper.getMainLooper())
-
 
     var backgroundColor by remember { mutableStateOf(defaultBackgroundColor) }
     val animatedBackgroundColor by animateColorAsState(targetValue = backgroundColor)
@@ -93,51 +85,20 @@ fun NowPlayingScreen(
         trackThumbnail?.let {
             Palette.from(it).generate { palette ->
                 val rgb = palette?.dominantSwatch?.rgb!!
-                val r = android.graphics.Color.red(rgb).times(0.5).toInt()
-                val g = android.graphics.Color.green(rgb).times(0.5).toInt()
-                val b = android.graphics.Color.blue(rgb).times(0.5).toInt()
+                val r = android.graphics.Color.red(rgb).times(0.22).toInt()
+                val g = android.graphics.Color.green(rgb).times(0.22).toInt()
+                val b = android.graphics.Color.blue(rgb).times(0.22).toInt()
                 backgroundColor = Color(r, g, b)
                 color = Color(rgb)
             }
+        } ?: run {
+            backgroundColor = defaultBackgroundColor
+            color = defaultColor
         }
     }
 
-//    DisposableEffect(key1 = lifecycleOwner) {
-//        val observer = LifecycleEventObserver { _, event ->
-//            if (event == Lifecycle.Event.ON_RESUME) {
-//                handler.postDelayed(object : Runnable {
-//                    override fun run() {
-//                        val currentPos = (controller?.currentPosition ?: 0)
-//                        val duration = controller?.duration ?: 0
-//                        val progress = (currentPos.times(100)).div(duration)
-//                        nowPlayingViewModel.onEvent(NowPlayingEvent.OnProgressChanged(currentPos))
-//
-//                        handler.removeCallbacks(this)
-//                        // Schedule an update if necessary.
-//                        val playbackState = controller?.playbackState ?: Player.STATE_IDLE
-//                        if (playbackState != Player.STATE_ENDED) {
-//                            var delayMs: Long
-//                            if (controller?.playWhenReady!! && playbackState == Player.STATE_READY) {
-//                                delayMs = 1000 - progress % 1000
-//                                if (delayMs < 200) {
-//                                    delayMs += 1000
-//                                }
-//                            } else {
-//                                delayMs = 1000
-//                            }
-//                            handler.postDelayed(this, delayMs)
-//                        }
-//                    }
-//                }, 1000)
-//            }
-//        }
-//        lifecycleOwner.lifecycle.addObserver(observer)
-//
-//        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-//    }
-
     Scaffold(
-        topBar = { NowPlayingTopAppBar({}, {}) },
+        topBar = { NowPlayingTopAppBar(goBack) },
         modifier = Modifier.fillMaxSize(),
         containerColor = animatedBackgroundColor
     ) {
@@ -405,13 +366,41 @@ fun RepeatIconButton(
 @Composable
 private fun NowPlayingTopAppBar(
     onBackClick: () -> Unit,
-    onOverFlowClick: () -> Unit
 ) {
+    var isMenuExpanded by remember { mutableStateOf(false) }
     val nowPlayingContentDesc = stringResource(id = R.string.top_app_bar)
-    DefaultTopAppBar(title = "",
+    DefaultTopAppBar(
+        title = "",
         mainIcon = { BackArrow(onBackClick) },
-        actions = { OverFlowIcon(onOverFlowClick) },
-        modifier = Modifier.semantics { contentDescription = nowPlayingContentDesc })
+        actions = {
+            Box {
+                OverFlowIcon { isMenuExpanded = true }
+
+                NowPlayingOverFlowMenu(
+                    menuExpanded = isMenuExpanded,
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) { isMenuExpanded = false }
+            }
+        },
+        modifier = Modifier.semantics { contentDescription = nowPlayingContentDesc }
+    )
+}
+
+@Composable
+private fun NowPlayingOverFlowMenu(
+    menuExpanded: Boolean,
+    modifier: Modifier,
+    onDismiss: () -> Unit
+) {
+    DropdownMenu(
+        expanded = menuExpanded,
+        onDismissRequest = onDismiss,
+        modifier = modifier.background(Color.White, RoundedCornerShape(12.dp))
+    ) {
+        Text(text = "Do stuff", style = Typography.bodyMedium)
+        Text(text = "Do another thing", style = Typography.bodyMedium)
+        Text(text = "Do something extraordinary", style = Typography.bodyMedium)
+    }
 }
 
 @Composable
