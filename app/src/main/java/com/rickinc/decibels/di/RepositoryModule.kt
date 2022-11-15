@@ -15,7 +15,7 @@ class RepositoryModule {
 
     @Provides
     fun provideAudioRepository(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
     ): AudioRepository {
         return AudioRepositoryImpl(context)
     }

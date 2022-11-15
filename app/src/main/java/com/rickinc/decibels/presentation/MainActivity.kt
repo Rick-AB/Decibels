@@ -161,11 +161,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
-    override fun onResume() {
-        super.onResume()
-    }
-
     override fun onStart() {
         super.onStart()
         initializeController()
