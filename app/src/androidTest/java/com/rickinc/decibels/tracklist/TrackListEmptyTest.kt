@@ -57,10 +57,5 @@ class TrackListEmptyTest {
         override suspend fun getAudioFiles(): Result<List<Track>> {
             return Result.Success(emptyList())
         }
-
-        override suspend fun getSingleAudioFile(trackId: String): Result<Track> {
-            TODO("Not yet implemented")
-        }
-
     }
 }

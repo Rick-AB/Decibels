@@ -10,8 +10,4 @@ class TestAudioRepository : AudioRepository {
         return if (shouldThrowException) Result.Error("Error reading audio files")
         else Result.Success(Track.getUniqueTrackList())
     }
-
-    override suspend fun getSingleAudioFile(trackId: String): Result<Track> {
-        TODO("Not yet implemented")
-    }
 }

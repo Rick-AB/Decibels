@@ -23,7 +23,7 @@ fun launchNowPlayingScreen(
 ): NowPlayingRobot {
     rule.setContent {
         CompositionLocalProvider(LocalController provides controller) {
-            NowPlayingScreen(uiState)
+            NowPlayingScreen(uiState) {}
         }
 
     }

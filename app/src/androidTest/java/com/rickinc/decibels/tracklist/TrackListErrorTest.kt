@@ -57,10 +57,5 @@ class TrackListErrorTest {
         override suspend fun getAudioFiles(): Result<List<Track>> {
             return Result.Error("Failed to load audio files")
         }
-
-        override suspend fun getSingleAudioFile(trackId: String): Result<Track> {
-            TODO("Not yet implemented")
-        }
-
     }
 }
