@@ -39,9 +39,6 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Run detekt
-        run: ./gradlew detektCheck
-
       - name: Instrumentation Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
