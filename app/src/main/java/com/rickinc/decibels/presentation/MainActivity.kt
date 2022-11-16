@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            DecibelsTheme(darkTheme = true) {
+            DecibelsTheme(darkTheme = true, dynamicColor = false) {
                 CompositionLocalProvider(LocalController provides controller) {
                     Box(modifier = Modifier.fillMaxSize()) {
                         MainActivityLayout()

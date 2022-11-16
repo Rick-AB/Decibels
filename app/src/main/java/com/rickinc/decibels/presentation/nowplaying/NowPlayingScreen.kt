@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.DropdownMenu
-import androidx.compose.material.Slider
-import androidx.compose.material.SliderDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -42,8 +40,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.palette.graphics.Palette
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.android.material.slider.Slider
 import com.rickinc.decibels.R
 import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
+import com.rickinc.decibels.presentation.ui.theme.LightBlack
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.ui.theme.Typography
 import com.rickinc.decibels.presentation.util.formatTrackDuration
@@ -70,15 +71,16 @@ fun NowPlayingScreen(
     uiState: NowPlayingState.TrackLoaded,
     goBack: () -> Unit
 ) {
-    val defaultBackgroundColor = MaterialTheme.colorScheme.background
-    val defaultColor = MaterialTheme.colorScheme.primary
+    val systemController = rememberSystemUiController()
+    val primaryBackgroundColor = LightBlack
+    val secondaryBackgroundColor = MaterialTheme.colorScheme.primary
     val trackThumbnail = uiState.currentTrack.thumbnail
     val controller = LocalController.current
 
-    var backgroundColor by remember { mutableStateOf(defaultBackgroundColor) }
+    var backgroundColor by remember { mutableStateOf(primaryBackgroundColor) }
     val animatedBackgroundColor by animateColorAsState(targetValue = backgroundColor)
 
-    var color by remember { mutableStateOf(defaultColor) }
+    var color by remember { mutableStateOf(secondaryBackgroundColor) }
     val animatedColor by animateColorAsState(targetValue = color)
 
     LaunchedEffect(key1 = trackThumbnail) {
@@ -92,16 +94,20 @@ fun NowPlayingScreen(
                 color = Color(rgb)
             }
         } ?: run {
-            backgroundColor = defaultBackgroundColor
-            color = defaultColor
+            backgroundColor = primaryBackgroundColor
+            color = secondaryBackgroundColor
         }
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        systemController.setStatusBarColor(Color.Transparent)
     }
 
     Scaffold(
         topBar = { NowPlayingTopAppBar(goBack) },
         modifier = Modifier.fillMaxSize(),
         containerColor = animatedBackgroundColor
-    ) {
+    ) { _ ->
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
@@ -174,6 +180,7 @@ fun NowPlayingScreen(
                     activeTrackColor = MaterialTheme.colorScheme.onBackground
                 ),
                 valueRange = 0f..uiState.currentTrack.trackLength.toFloat(),
+                thumb = { SliderThumb() },
                 modifier = Modifier
                     .constrainAs(seekBar) {
                         start.linkTo(parent.start)
@@ -291,6 +298,15 @@ fun NowPlayingScreen(
         }
 
     }
+}
+
+@Composable
+fun SliderThumb() {
+    Box(
+        modifier = Modifier
+            .size(5.dp)
+            .background(MaterialTheme.colorScheme.onBackground, CircleShape)
+    )
 }
 
 @Composable
