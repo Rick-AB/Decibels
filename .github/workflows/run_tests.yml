@@ -24,7 +24,8 @@ jobs:
         run: ./gradlew testDebug
 
   ui_test:
-    runs-on: macos-latest
+    runs-on: macOS-latest
+    timeout-minutes: 60
     strategy:
       matrix:
         api-level: [ 29 ]
@@ -45,7 +46,6 @@ jobs:
           api-level: ${{ matrix.api-level }}
           target: ${{ matrix.target }}
           arch: x86
-          profile: Pixel 4
           emulator-build: 7425822
           script: ./gradlew connectedCheck --stacktrace
 
