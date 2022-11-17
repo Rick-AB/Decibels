@@ -45,7 +45,6 @@ jobs:
         with:
           api-level: ${{ matrix.api-level }}
           target: ${{ matrix.target }}
-          profile: pixel 4
           arch: x86_64
           emulator-build: 7425822
           script: ./gradlew connectedDebugAndroidTest --stacktrace
