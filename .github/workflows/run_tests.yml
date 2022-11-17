@@ -25,10 +25,11 @@ jobs:
 
   ui_test:
     runs-on: macos-latest
+    timeout-minutes: 30
     strategy:
       matrix:
-        api-level: [ 21, 23, 29 ]
-        target: [ default ]
+        api-level: [ 29 ]
+        target: [ google_apis ]
 
     steps:
       - uses: actions/checkout@v3
@@ -39,17 +40,14 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Run detekt
-        run: ./gradlew detektCheck
-
       - name: Instrumentation Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
           target: ${{ matrix.target }}
-          arch: x86
-          profile: Pixel 4
-          script: ./gradlew connectedCheck --stacktrace
+          arch: x86_64
+          emulator-build: 7425822
+          script: ./gradlew connectedDebugAndroidTest --stacktrace
 
       - name: Upload Reports
         uses: actions/upload-artifact@v2

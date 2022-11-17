@@ -11,7 +11,8 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
-import com.rickinc.decibels.presentation.tracklist.SongsListScreen
+import com.rickinc.decibels.presentation.nowplaying.NowPlayingScreen
+import com.rickinc.decibels.presentation.tracklist.TrackListScreen
 
 @Composable
 fun MainActivityLayout() {
@@ -29,14 +30,29 @@ fun ScreenContent(navController: NavHostController) {
 
     AnimatedNavHost(
         navController = navController,
-        startDestination = Screen.FullScreen.SongListScreen.route(),
+        startDestination = Screen.FullScreen.TrackListScreen.route(),
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
         popEnterTransition = { EnterTransition.None },
         popExitTransition = { ExitTransition.None }
     ) {
-        composable(Screen.FullScreen.SongListScreen.route()) {
-            SongsListScreen(navBackStackEntry = it)
+        composable(Screen.FullScreen.TrackListScreen.route()) {
+            TrackListScreen { track ->
+                navController.navigate(
+                    Screen.FullScreen.NowPlayingScreen.buildRoute(
+                        listOf(track.trackId.toString())
+                    )
+                )
+            }
+        }
+
+        composable(
+            Screen.FullScreen.NowPlayingScreen.route(),
+            arguments = Screen.FullScreen.NowPlayingScreen.getArguments()
+        ) {
+            NowPlayingScreen {
+                navController.popBackStack()
+            }
         }
     }
 }

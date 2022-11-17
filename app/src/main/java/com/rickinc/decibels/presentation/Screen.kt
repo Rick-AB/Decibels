@@ -3,7 +3,7 @@ package com.rickinc.decibels.presentation
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.rickinc.decibels.UrlEncoder
+import com.rickinc.decibels.domain.util.UrlEncoder
 
 sealed class Screen(
     private val id: String,
@@ -16,7 +16,13 @@ sealed class Screen(
             emptyList()
     ) : Screen(name, argumentList) {
 
-        object SongListScreen : FullScreen("SongsList")
+        object TrackListScreen : FullScreen("Track list")
+        object NowPlayingScreen : FullScreen(
+            name = "Now playing",
+            argumentList = listOf(
+                ScreenArg(TRACK_ID, ArgType.STRING)
+            )
+        )
     }
 
     init {
@@ -63,9 +69,8 @@ sealed class Screen(
             return screen
         }
 
-        const val CONVERSATION_ID_ARG_KEY = "conversationID"
-        const val CONVERSATION_NAME_ARG_KEY = "conversationName"
-        const val CONVERSATION_PIC_URL_ARG_KEY = "conversationPic"
+        const val TRACK_ID = "trackID"
+
     }
 }
 
