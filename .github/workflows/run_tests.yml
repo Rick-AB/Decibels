@@ -47,7 +47,7 @@ jobs:
           target: ${{ matrix.target }}
           arch: x86
           emulator-build: 7425822
-          script: ./gradlew connectedCheck --stacktrace
+          script: ./gradlew connectedDebugAndroidTest --stacktrace
 
       - name: Upload Reports
         uses: actions/upload-artifact@v2
