@@ -24,12 +24,12 @@ jobs:
         run: ./gradlew testDebug
 
   ui_test:
-    runs-on: macOS-latest
-    timeout-minutes: 60
+    runs-on: macos-latest
+    timeout-minutes: 30
     strategy:
       matrix:
         api-level: [ 29 ]
-        target: [ default ]
+        target: [ google_apis ]
 
     steps:
       - uses: actions/checkout@v3
@@ -45,7 +45,8 @@ jobs:
         with:
           api-level: ${{ matrix.api-level }}
           target: ${{ matrix.target }}
-          arch: x86
+          profile: pixel 4
+          arch: x86_64
           emulator-build: 7425822
           script: ./gradlew connectedDebugAndroidTest --stacktrace
 
