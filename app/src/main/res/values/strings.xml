@@ -1,3 +1,17 @@
 <resources>
-    <string name="app_name">Decibels</string>
+    <string name="appName">Decibels</string>
+    <string name="myMusic">My Music</string>
+    <string name="track_list">Track list</string>
+    <string name="error_loading_audio_files">There was an error loading audio files</string>
+    <string name="empty_track_list">Nothing to show here</string>
+    <string name="top_app_bar">TopAppBar</string>
+    <string name="back_arrow">Back arrow</string>
+    <string name="over_flow">Over flow menu</string>
+    <string name="album_art">Album art</string>
+    <string name="seek_bar">SeekBar</string>
+    <string name="previous_track_button">Previous track button</string>
+    <string name="play_pause_button">Play pause button</string>
+    <string name="next_track_button">Next track button</string>
+    <string name="shuffle_button">Shuffle button</string>
+    <string name="repeat_button">Repeat button</string>
 </resources>
