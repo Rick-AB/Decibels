@@ -36,7 +36,7 @@ class SongsListVerification(
     private val rule: AndroidComposeTestRule<ActivityScenarioRule<MainActivity>, MainActivity>
 ) {
     fun trackListScreenIsDisplayed() {
-        val myMusicText = rule.activity.getString(R.string.myMusic)
+        val myMusicText = rule.activity.getString(R.string.appName)
         rule.onNodeWithText(myMusicText)
             .assertIsDisplayed()
     }

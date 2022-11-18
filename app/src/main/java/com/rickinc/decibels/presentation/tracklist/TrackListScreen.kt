@@ -113,7 +113,7 @@ fun TrackListBody(
 
 @Composable
 fun TrackListTopAppBar() {
-    DefaultTopAppBar(title = stringResource(id = R.string.myMusic))
+    DefaultTopAppBar(title = stringResource(id = R.string.appName))
 }
 
 @Composable
@@ -189,7 +189,7 @@ fun NowPlayingPreview(nowPlayingState: NowPlayingState.TrackLoaded, modifier: Mo
         modifier = modifier
             .fillMaxWidth()
             .background(LightBlack)
-            .padding(vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         val thumbnail = nowPlayingState.currentTrack.thumbnail
         if (thumbnail != null) {
@@ -197,7 +197,7 @@ fun NowPlayingPreview(nowPlayingState: NowPlayingState.TrackLoaded, modifier: Mo
                 bitmap = thumbnail.asImageBitmap(),
                 contentDescription = stringResource(id = R.string.album_art),
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(50.dp)
                     .clip(RoundedCornerShape(4.dp))
             )
         } else {
@@ -205,7 +205,7 @@ fun NowPlayingPreview(nowPlayingState: NowPlayingState.TrackLoaded, modifier: Mo
                 painter = painterResource(id = R.drawable.ic_baseline_audio_file_24),
                 contentDescription = stringResource(id = R.string.album_art),
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(50.dp)
                     .clip(RoundedCornerShape(4.dp))
             )
         }
@@ -214,16 +214,18 @@ fun NowPlayingPreview(nowPlayingState: NowPlayingState.TrackLoaded, modifier: Mo
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = nowPlayingState.currentTrack.trackTitle,
-                style = Typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                style = Typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1
             )
             Text(
                 text = nowPlayingState.currentTrack.artist,
-                style = Typography.bodyMedium,
+                style = Typography.bodySmall,
             )
         }
 
         val iconId = if (nowPlayingState.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+        Spacer(modifier = Modifier.width(24.dp))
         IconButton(
             onClick = { /*TODO*/ },
             modifier = Modifier.size(24.dp)
