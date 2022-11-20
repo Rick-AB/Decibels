@@ -1,11 +1,16 @@
 package com.rickinc.decibels.presentation
 
-import android.content.*
-import android.os.*
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.Bundle
+import android.os.Handler
+import android.os.IBinder
+import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.CompositionLocalProvider
@@ -74,7 +79,20 @@ class MainActivity : ComponentActivity() {
             controller = controllerFuture.get()
             setControllerListener()
             setPlayerListener()
+            setupLastPlayed()
         }, MoreExecutors.directExecutor())
+    }
+
+    private fun setupLastPlayed() {
+        val currentMediaItem = controller?.currentMediaItem
+        if (currentMediaItem != null) {
+            nowPlayingViewModel.onEvent(
+                NowPlayingEvent.OnMediaItemChanged(currentMediaItem)
+            )
+            nowPlayingViewModel.onEvent(
+                NowPlayingEvent.OnProgressChanged(player.currentPosition)
+            )
+        }
     }
 
     private fun setControllerListener() {

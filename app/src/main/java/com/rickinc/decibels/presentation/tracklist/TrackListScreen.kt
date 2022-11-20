@@ -10,10 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -145,7 +142,9 @@ fun TrackList(
             }
 
             if (nowPlayingState is NowPlayingState.TrackLoaded) {
-                NowPlayingPreview(nowPlayingState, Modifier.align(Alignment.BottomCenter))
+                NowPlayingPreview(nowPlayingState, Modifier.align(Alignment.BottomCenter)) {
+                    onTrackItemClick(nowPlayingState.currentTrack)
+                }
             }
         }
     }
@@ -183,71 +182,97 @@ fun TrackItem(track: Track, onClick: () -> Unit) {
 }
 
 @Composable
-fun NowPlayingPreview(nowPlayingState: NowPlayingState.TrackLoaded, modifier: Modifier = Modifier) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+fun NowPlayingPreview(
+    nowPlayingState: NowPlayingState.TrackLoaded,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val controller = LocalController.current
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .background(LightBlack)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .clickable { onClick() }
+            .padding(vertical = 12.dp)
     ) {
-        val thumbnail = nowPlayingState.currentTrack.thumbnail
-        if (thumbnail != null) {
-            Image(
-                bitmap = thumbnail.asImageBitmap(),
-                contentDescription = stringResource(id = R.string.album_art),
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(RoundedCornerShape(4.dp))
-            )
-        } else {
-            Image(
-                painter = painterResource(id = R.drawable.ic_baseline_audio_file_24),
-                contentDescription = stringResource(id = R.string.album_art),
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(RoundedCornerShape(4.dp))
-            )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = nowPlayingState.currentTrack.trackTitle,
-                style = Typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1
-            )
-            Text(
-                text = nowPlayingState.currentTrack.artist,
-                style = Typography.bodySmall,
-            )
-        }
-
-        val iconId = if (nowPlayingState.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
-        Spacer(modifier = Modifier.width(24.dp))
-        IconButton(
-            onClick = { /*TODO*/ },
-            modifier = Modifier.size(24.dp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
         ) {
-            Icon(
-                painter = painterResource(id = iconId),
-                contentDescription = stringResource(id = R.string.play_pause_button),
-            )
+            val thumbnail = nowPlayingState.currentTrack.thumbnail
+            if (thumbnail != null) {
+                Image(
+                    bitmap = thumbnail.asImageBitmap(),
+                    contentDescription = stringResource(id = R.string.album_art),
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_baseline_audio_file_24),
+                    contentDescription = stringResource(id = R.string.album_art),
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = nowPlayingState.currentTrack.trackTitle,
+                    style = Typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1
+                )
+                Text(
+                    text = nowPlayingState.currentTrack.artist,
+                    style = Typography.bodySmall,
+                )
+            }
+
+            val iconId = if (nowPlayingState.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+            Spacer(modifier = Modifier.width(24.dp))
+            IconButton(
+                onClick = {
+                    if (nowPlayingState.isPlaying) controller?.pause()
+                    else controller?.play()
+                },
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = iconId),
+                    contentDescription = stringResource(id = R.string.play_pause_button),
+                )
+            }
+
+
+            Spacer(modifier = Modifier.width(16.dp))
+            IconButton(
+                onClick = { controller?.seekToNextMediaItem() },
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_next),
+                    contentDescription = stringResource(id = R.string.play_pause_button),
+                )
+            }
+
         }
 
-
-        Spacer(modifier = Modifier.width(16.dp))
-        IconButton(
-            onClick = { /*TODO*/ },
-            modifier = Modifier.size(24.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_next),
-                contentDescription = stringResource(id = R.string.play_pause_button),
-            )
-        }
-
+        val progress = nowPlayingState.progress.toFloat().div(nowPlayingState.currentTrack.trackLength)
+        Spacer(modifier = Modifier.height(8.dp))
+        LinearProgressIndicator(
+            progress = progress,
+            color = Color.White,
+            trackColor = Color.Gray,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+        )
     }
 }
 
