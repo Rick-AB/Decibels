@@ -41,7 +41,6 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.palette.graphics.Palette
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.google.android.material.slider.Slider
 import com.rickinc.decibels.R
 import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.ui.theme.LightBlack
@@ -224,10 +223,11 @@ fun NowPlayingScreen(
                 controller?.shuffleModeEnabled = !controller?.shuffleModeEnabled!!
             }
 
-            val controlSize = 40.dp
+            val controlSize = 36.dp
             NowPlayingControlButton(
                 iconRes = R.drawable.ic_previous,
                 contentDesc = R.string.previous_track_button,
+                tint = Color.White,
                 size = controlSize,
                 modifier = Modifier.constrainAs(previousButton) {
                     start.linkTo(shuffleButton.end)
@@ -242,7 +242,7 @@ fun NowPlayingScreen(
             NowPlayingControlButton(
                 iconRes = if (uiState.isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
                 contentDesc = R.string.play_pause_button,
-                size = 44.dp,
+                size = 40.dp,
                 backgroundColor = animatedColor,
                 modifier = Modifier.constrainAs(playPauseButton) {
                     start.linkTo(previousButton.end)
@@ -257,6 +257,7 @@ fun NowPlayingScreen(
             NowPlayingControlButton(
                 iconRes = R.drawable.ic_next,
                 contentDesc = R.string.next_track_button,
+                tint = Color.White,
                 size = controlSize,
                 modifier = Modifier.constrainAs(nextButton) {
                     start.linkTo(playPauseButton.end)
@@ -304,7 +305,7 @@ fun NowPlayingScreen(
 fun SliderThumb() {
     Box(
         modifier = Modifier
-            .size(5.dp)
+            .size(12.dp)
             .background(MaterialTheme.colorScheme.onBackground, CircleShape)
     )
 }
@@ -332,21 +333,21 @@ fun NowPlayingControlButton(
 fun NowPlayingControlButton(
     @DrawableRes iconRes: Int,
     @StringRes contentDesc: Int,
-    size: Dp = 24.dp,
+    size: Dp,
     backgroundColor: Color,
     modifier: Modifier,
     onClick: () -> Unit
 ) {
     IconButton(
         onClick = onClick,
-        modifier = modifier.background(backgroundColor, CircleShape)
+        modifier = modifier
+            .background(backgroundColor, CircleShape)
+            .padding(8.dp)
     ) {
         Icon(
             painter = painterResource(id = iconRes),
             contentDescription = stringResource(id = contentDesc),
-            modifier = Modifier
-                .padding(8.dp)
-                .size(size)
+            modifier = Modifier.size(size)
         )
     }
 }

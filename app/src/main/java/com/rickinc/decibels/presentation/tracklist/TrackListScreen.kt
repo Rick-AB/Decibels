@@ -3,43 +3,48 @@ package com.rickinc.decibels.presentation.tracklist
 import android.Manifest
 import androidx.activity.ComponentActivity
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaController
 import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Track
+import com.rickinc.decibels.presentation.nowplaying.NowPlayingState
+import com.rickinc.decibels.presentation.nowplaying.NowPlayingViewModel
 import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.ui.components.accomponistpermision.rememberPermissionState
 import com.rickinc.decibels.presentation.ui.components.isPermanentlyDenied
+import com.rickinc.decibels.presentation.ui.theme.LightBlack
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.ui.theme.Typography
 import com.rickinc.decibels.presentation.util.formatTrackDuration
-import timber.log.Timber
 
 @Composable
 fun TrackListScreen(onTrackItemClick: (Track) -> Unit) {
@@ -78,8 +83,11 @@ fun TrackListBody(
     onTrackItemClick: (Track) -> Unit
 ) {
     Box(modifier = Modifier.padding(innerPadding)) {
-        val viewModel: TrackListViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
-        val screenState = viewModel.uiState.collectAsState().value
+        val context = LocalContext.current
+        val viewModel: TrackListViewModel = hiltViewModel(context as ComponentActivity)
+        val nowPlayingViewModel: NowPlayingViewModel = hiltViewModel(context)
+        val screenState = viewModel.uiState.collectAsStateWithLifecycle().value
+        val nowPlayingState = nowPlayingViewModel.uiState.collectAsStateWithLifecycle().value
 
         LaunchedEffect(key1 = Unit) {
             viewModel.getAudioFiles()
@@ -88,6 +96,7 @@ fun TrackListBody(
         when (screenState) {
             is TrackListState.DataLoaded -> TrackList(
                 tracks = screenState.tracks,
+                nowPlayingState = nowPlayingState,
                 getMediaItems = viewModel::getMediaItems,
                 getMediaItem = viewModel::getMediaItem,
                 onTrackItemClick = onTrackItemClick
@@ -101,12 +110,13 @@ fun TrackListBody(
 
 @Composable
 fun TrackListTopAppBar() {
-    DefaultTopAppBar(title = stringResource(id = R.string.myMusic))
+    DefaultTopAppBar(title = stringResource(id = R.string.appName))
 }
 
 @Composable
 fun TrackList(
     tracks: List<Track>,
+    nowPlayingState: NowPlayingState?,
     getMediaItems: (List<Track>) -> List<MediaItem>,
     getMediaItem: (Track) -> MediaItem,
     onTrackItemClick: (Track) -> Unit
@@ -115,41 +125,29 @@ fun TrackList(
     else {
         val trackContentDescription = stringResource(id = R.string.track_list)
         val mediaController = LocalController.current
-        LazyColumn(modifier = Modifier
-            .fillMaxSize()
-            .semantics {
-                contentDescription = trackContentDescription
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(modifier = Modifier
+                .fillMaxSize()
+                .semantics {
+                    contentDescription = trackContentDescription
+                }
+            ) {
+                itemsIndexed(tracks, key = { _, track -> track.trackId }) { index, track ->
+                    TrackItem(track = track) {
+                        playTrack(mediaController, getMediaItem(track))
+                        addPlaylist(mediaController, index, tracks, getMediaItems)
+                        onTrackItemClick(track)
+                    }
+                }
             }
-        ) {
-            itemsIndexed(tracks, key = { _, track -> track.trackId }) { index, track ->
-                TrackItem(track = track) {
-                    playTrack(mediaController, getMediaItem(track))
-                    addPlaylist(mediaController, index, tracks, getMediaItems)
-                    onTrackItemClick(track)
+
+            if (nowPlayingState is NowPlayingState.TrackLoaded) {
+                NowPlayingPreview(nowPlayingState, Modifier.align(Alignment.BottomCenter)) {
+                    onTrackItemClick(nowPlayingState.currentTrack)
                 }
             }
         }
     }
-}
-
-private fun playTrack(mediaController: MediaController?, mediaItem: MediaItem) {
-    mediaController?.clearMediaItems()
-    mediaController?.setMediaItem(mediaItem)
-    mediaController?.prepare()
-    mediaController?.play()
-}
-
-private fun addPlaylist(
-    mediaController: MediaController?,
-    currentTrackIndex: Int,
-    tracks: List<Track>,
-    getMediaItems: (List<Track>) -> List<MediaItem>
-) {
-    val subListBeforeCurrent = tracks.subList(0, currentTrackIndex)
-    mediaController?.addMediaItems(0, getMediaItems(subListBeforeCurrent))
-
-    val subListAfterCurrent = tracks.subList(currentTrackIndex + 1, tracks.lastIndex)
-    mediaController?.addMediaItems(getMediaItems(subListAfterCurrent))
 }
 
 @Composable
@@ -184,6 +182,101 @@ fun TrackItem(track: Track, onClick: () -> Unit) {
 }
 
 @Composable
+fun NowPlayingPreview(
+    nowPlayingState: NowPlayingState.TrackLoaded,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val controller = LocalController.current
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(LightBlack)
+            .clickable { onClick() }
+            .padding(vertical = 12.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            val thumbnail = nowPlayingState.currentTrack.thumbnail
+            if (thumbnail != null) {
+                Image(
+                    bitmap = thumbnail.asImageBitmap(),
+                    contentDescription = stringResource(id = R.string.album_art),
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_baseline_audio_file_24),
+                    contentDescription = stringResource(id = R.string.album_art),
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = nowPlayingState.currentTrack.trackTitle,
+                    style = Typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1
+                )
+                Text(
+                    text = nowPlayingState.currentTrack.artist,
+                    style = Typography.bodySmall,
+                )
+            }
+
+            val iconId = if (nowPlayingState.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+            Spacer(modifier = Modifier.width(24.dp))
+            IconButton(
+                onClick = {
+                    if (nowPlayingState.isPlaying) controller?.pause()
+                    else controller?.play()
+                },
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = iconId),
+                    contentDescription = stringResource(id = R.string.play_pause_button),
+                )
+            }
+
+
+            Spacer(modifier = Modifier.width(16.dp))
+            IconButton(
+                onClick = { controller?.seekToNextMediaItem() },
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_next),
+                    contentDescription = stringResource(id = R.string.play_pause_button),
+                )
+            }
+
+        }
+
+        val progress = nowPlayingState.progress.toFloat().div(nowPlayingState.currentTrack.trackLength)
+        Spacer(modifier = Modifier.height(8.dp))
+        LinearProgressIndicator(
+            progress = progress,
+            color = Color.White,
+            trackColor = Color.Gray,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+        )
+    }
+}
+
+@Composable
 fun InfoText(@StringRes stringResource: Int) {
     Box(
         contentAlignment = Alignment.Center,
@@ -201,7 +294,25 @@ fun InfoText(@StringRes stringResource: Int) {
 
 @Composable
 fun PermissionRequiredBody() {
-    Column {
+    Column {}
+}
 
-    }
+private fun playTrack(mediaController: MediaController?, mediaItem: MediaItem) {
+    mediaController?.clearMediaItems()
+    mediaController?.setMediaItem(mediaItem)
+    mediaController?.prepare()
+    mediaController?.play()
+}
+
+private fun addPlaylist(
+    mediaController: MediaController?,
+    currentTrackIndex: Int,
+    tracks: List<Track>,
+    getMediaItems: (List<Track>) -> List<MediaItem>
+) {
+    val subListBeforeCurrent = tracks.subList(0, currentTrackIndex)
+    mediaController?.addMediaItems(0, getMediaItems(subListBeforeCurrent))
+
+    val subListAfterCurrent = tracks.subList(currentTrackIndex + 1, tracks.lastIndex)
+    mediaController?.addMediaItems(getMediaItems(subListAfterCurrent))
 }
