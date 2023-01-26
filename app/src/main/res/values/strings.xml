@@ -14,4 +14,10 @@
     <string name="next_track_button">Next track button</string>
     <string name="shuffle_button">Shuffle button</string>
     <string name="repeat_button">Repeat button</string>
+    <string name="cancel">Cancel</string>
+    <string name="go_to_settings">Go to settings</string>
+    <string name="ok">OK</string>
+    <string name="storage_permission_denied_message">Storage permission is required for Decibels to proceed. Please grant the permission</string>
+    <string name="storage_permission_permanently_denied_message">"Storage permission is required for Decibels to proceed. Do you want to grant the permission? "</string>
+    <string name="grant_permission">Grant permission</string>
 </resources>

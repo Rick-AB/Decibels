@@ -88,6 +88,9 @@ dependencies {
     // palette
     implementation 'androidx.palette:palette:1.0.0'
 
+    // preferences
+    implementation 'androidx.preference:preference:1.2.0'
+
     // room
     kapt("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version")

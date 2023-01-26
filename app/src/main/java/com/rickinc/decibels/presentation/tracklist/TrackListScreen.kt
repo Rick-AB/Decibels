@@ -1,7 +1,10 @@
 package com.rickinc.decibels.presentation.tracklist
 
 import android.Manifest
+import android.os.Build
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -11,9 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,6 +28,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -38,25 +40,52 @@ import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.presentation.nowplaying.NowPlayingState
 import com.rickinc.decibels.presentation.nowplaying.NowPlayingViewModel
-import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
-import com.rickinc.decibels.presentation.ui.components.accomponistpermision.rememberPermissionState
-import com.rickinc.decibels.presentation.ui.components.isPermanentlyDenied
+import com.rickinc.decibels.presentation.ui.components.*
+import com.rickinc.decibels.presentation.ui.components.accomponistpermision.findActivity
 import com.rickinc.decibels.presentation.ui.theme.LightBlack
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.ui.theme.Typography
 import com.rickinc.decibels.presentation.util.formatTrackDuration
+import com.rickinc.decibels.presentation.util.hasPermission
+import com.rickinc.decibels.presentation.util.openAppSettings
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrackListScreen(onTrackItemClick: (Track) -> Unit) {
-    Scaffold(modifier = Modifier.fillMaxSize(), topBar = { TrackListTopAppBar() }) { padding ->
-        val storagePermission =
-            rememberPermissionState(permission = Manifest.permission.READ_EXTERNAL_STORAGE)
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = { TrackListTopAppBar() }
+    ) { padding ->
+        var hasStoragePermission by remember { mutableStateOf(false) }
+        var shouldShowRationale by remember { mutableStateOf(false) }
 
+        val context = LocalContext.current
         val lifecycleOwner = LocalLifecycleOwner.current
+        val preferences = requireSharedPreferencesEntryPoint().sharedPreferences
+        val permissionString = getRequiredPermission()
+        val isPermanentlyDenied: () -> Boolean =
+            { isPermissionPermanentlyDenied(context, preferences, permissionString) }
+
+        val permissionLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) hasStoragePermission = true
+            else setShouldShowRationaleStatus(preferences, permissionString)
+
+            val showRationale =
+                context.findActivity()
+                    .shouldShowRequestPermissionRationale(permissionString)
+            if (showRationale) shouldShowRationale = true
+        }
+
         DisposableEffect(key1 = lifecycleOwner) {
             val observer = LifecycleEventObserver { _, event ->
                 if (event == Lifecycle.Event.ON_START) {
-                    storagePermission.launchPermissionRequest()
+                    when {
+                        context.hasPermission("") -> hasStoragePermission = true
+                        isPermanentlyDenied() -> shouldShowRationale = true
+                        else -> permissionLauncher.launch(permissionString)
+                    }
                 }
             }
             lifecycleOwner.lifecycle.addObserver(observer)
@@ -67,12 +96,11 @@ fun TrackListScreen(onTrackItemClick: (Track) -> Unit) {
         }
 
         when {
-            storagePermission.hasPermission -> TrackListBody(
-                padding,
-                onTrackItemClick
-            )
-            storagePermission.shouldShowRationale -> PermissionRequiredBody()
-            storagePermission.isPermanentlyDenied() && storagePermission.permissionRequested -> PermissionRequiredBody()
+            hasStoragePermission -> TrackListBody(padding, onTrackItemClick)
+            shouldShowRationale -> PermissionRequiredBody(isPermanentlyDenied = isPermanentlyDenied()) {
+                if (isPermanentlyDenied()) context.openAppSettings()
+                else permissionLauncher.launch(permissionString)
+            }
         }
     }
 }
@@ -263,7 +291,8 @@ fun NowPlayingPreview(
 
         }
 
-        val progress = nowPlayingState.progress.toFloat().div(nowPlayingState.currentTrack.trackLength)
+        val progress =
+            nowPlayingState.progress.toFloat().div(nowPlayingState.currentTrack.trackLength)
         Spacer(modifier = Modifier.height(8.dp))
         LinearProgressIndicator(
             progress = progress,
@@ -293,8 +322,38 @@ fun InfoText(@StringRes stringResource: Int) {
 }
 
 @Composable
-fun PermissionRequiredBody() {
-    Column {}
+fun PermissionRequiredBody(
+    isPermanentlyDenied: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        val messageRes =
+            if (isPermanentlyDenied) R.string.storage_permission_permanently_denied_message
+            else R.string.storage_permission_denied_message
+        Text(
+            text = stringResource(id = messageRes),
+            style = Typography.bodyLarge,
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+        Button(onClick = onClick) {
+            val buttonTextRes = if (isPermanentlyDenied) R.string.go_to_settings
+            else R.string.grant_permission
+            Text(text = stringResource(id = buttonTextRes), style = Typography.bodyMedium)
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PermissionRequiredPrev() {
+    PermissionRequiredBody(isPermanentlyDenied = true) {
+
+    }
 }
 
 private fun playTrack(mediaController: MediaController?, mediaItem: MediaItem) {
@@ -315,4 +374,9 @@ private fun addPlaylist(
 
     val subListAfterCurrent = tracks.subList(currentTrackIndex + 1, tracks.lastIndex)
     mediaController?.addMediaItems(getMediaItems(subListAfterCurrent))
+}
+
+private fun getRequiredPermission(): String {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
+    else Manifest.permission.READ_EXTERNAL_STORAGE
 }
