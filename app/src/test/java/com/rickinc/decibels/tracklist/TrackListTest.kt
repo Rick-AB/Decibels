@@ -23,12 +23,13 @@ class TrackListTest {
 
     @Test
     fun getAudioFiles_ifNoErrors_stateShouldBeDataLoaded() {
-        val viewModel = TrackListViewModel(TestAudioRepository(), TrackConverter())
+        val trackConverter = TrackConverter()
+        val viewModel = TrackListViewModel(TestAudioRepository(), trackConverter)
         viewModel.getAudioFiles()
         runCoroutine()
 
         val tracks = Track.getUniqueTrackList()
-        val expectedState = TrackListState.DataLoaded(tracks)
+        val expectedState = TrackListState.DataLoaded(tracks, trackConverter.toMediaItems(tracks))
         val actualState = viewModel.uiState.value
         assertEquals(expectedState, actualState)
     }

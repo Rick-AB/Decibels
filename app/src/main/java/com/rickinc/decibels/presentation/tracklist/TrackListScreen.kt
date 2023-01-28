@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -41,8 +42,11 @@ import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.presentation.nowplaying.NowPlayingState
 import com.rickinc.decibels.presentation.nowplaying.NowPlayingViewModel
-import com.rickinc.decibels.presentation.ui.components.*
+import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.ui.components.accomponistpermision.findActivity
+import com.rickinc.decibels.presentation.ui.components.isPermissionPermanentlyDenied
+import com.rickinc.decibels.presentation.ui.components.requireSharedPreferencesEntryPoint
+import com.rickinc.decibels.presentation.ui.components.setShouldShowRationaleStatus
 import com.rickinc.decibels.presentation.ui.theme.LightBlack
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.ui.theme.Typography
@@ -57,13 +61,14 @@ fun TrackListScreen(onTrackItemClick: (Track) -> Unit) {
         modifier = Modifier.fillMaxSize(),
         topBar = { TrackListTopAppBar() }
     ) { padding ->
-        var hasStoragePermission by remember { mutableStateOf(false) }
-        var shouldShowRationale by remember { mutableStateOf(false) }
-
         val context = LocalContext.current
         val lifecycleOwner = LocalLifecycleOwner.current
-        val preferences = requireSharedPreferencesEntryPoint().sharedPreferences
         val permissionString = getRequiredPermission()
+
+        var hasStoragePermission by remember { mutableStateOf(context.hasPermission(permissionString)) }
+        var shouldShowRationale by remember { mutableStateOf(false) }
+
+        val preferences = requireSharedPreferencesEntryPoint().sharedPreferences
         val isPermanentlyDenied: () -> Boolean =
             { isPermissionPermanentlyDenied(context, preferences, permissionString) }
 
@@ -83,7 +88,6 @@ fun TrackListScreen(onTrackItemClick: (Track) -> Unit) {
             val observer = LifecycleEventObserver { _, event ->
                 if (event == Lifecycle.Event.ON_START) {
                     when {
-                        context.hasPermission(permissionString) -> hasStoragePermission = true
                         isPermanentlyDenied() -> shouldShowRationale = true
                         else -> permissionLauncher.launch(permissionString)
                     }
@@ -117,17 +121,17 @@ fun TrackListBody(
         val context = LocalContext.current
         val viewModel: TrackListViewModel = hiltViewModel(context as ComponentActivity)
         val nowPlayingViewModel: NowPlayingViewModel = hiltViewModel(context)
-        val screenState = viewModel.uiState.collectAsStateWithLifecycle().value
+        val trackListScreenState = viewModel.uiState.collectAsStateWithLifecycle().value
         val nowPlayingState = nowPlayingViewModel.uiState.collectAsStateWithLifecycle().value
 
         LaunchedEffect(key1 = Unit) {
             viewModel.getAudioFiles()
         }
 
-        when (screenState) {
+        when (trackListScreenState) {
             is TrackListState.DataLoaded -> TrackList(
-                tracks = screenState.tracks,
-                tracksAsMediaItems = screenState.tracksAsMediaItems,
+                tracks = trackListScreenState.tracks,
+                tracksAsMediaItems = trackListScreenState.tracksAsMediaItems,
                 nowPlayingState = nowPlayingState,
                 onTrackItemClick = onTrackItemClick
             )
@@ -208,7 +212,7 @@ fun TrackItem(
             .clickable { onClick() }
             .padding(start = 16.dp, end = 16.dp, top = 8.dp),
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(0.7f)) {
             Text(text = track.trackTitle, style = Typography.titleMedium, maxLines = 1)
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -216,24 +220,31 @@ fun TrackItem(
         }
 
         val displayTime = formatTrackDuration(track.trackLength.toLong())
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(text = displayTime, style = Typography.bodyMedium)
+        Row(
 
-        Spacer(modifier = Modifier.width(16.dp))
-        Box {
-            IconButton(onClick = { isMenuExpanded = true }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_baseline_more_vert_24),
-                    contentDescription = "",
-                    tint = Color.Gray
-                )
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .weight(0.3f)
+                .padding(start = 16.dp)
+        ) {
+            Text(text = displayTime, style = Typography.bodyMedium)
+
+            Box {
+                IconButton(onClick = { isMenuExpanded = true }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_baseline_more_vert_24),
+                        contentDescription = "",
+                        tint = Color.Gray
+                    )
+                }
+
+                TrackItemMenu(
+                    expanded = isMenuExpanded,
+                    dismissMenu = { isMenuExpanded = false },
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) { playNext(context, mediaController, trackAsMediaItem) }
             }
-
-            TrackItemMenu(
-                expanded = isMenuExpanded,
-                dismissMenu = { isMenuExpanded = false },
-                modifier = Modifier.align(Alignment.TopEnd)
-            ) { playNext(context, mediaController, trackAsMediaItem) }
         }
     }
 }
@@ -369,31 +380,21 @@ fun NowPlayingPreview(
 
             val iconId = if (nowPlayingState.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
             Spacer(modifier = Modifier.width(24.dp))
-            IconButton(
-                onClick = {
-                    if (nowPlayingState.isPlaying) controller?.pause()
-                    else controller?.play()
-                },
-                modifier = Modifier.size(24.dp)
+            NowPlayingPreviewControlButton(
+                iconRes = iconId,
+                contentDescriptionRes = R.string.play_pause_button
             ) {
-                Icon(
-                    painter = painterResource(id = iconId),
-                    contentDescription = stringResource(id = R.string.play_pause_button),
-                )
+                if (nowPlayingState.isPlaying) controller?.pause()
+                else controller?.play()
             }
-
 
             Spacer(modifier = Modifier.width(16.dp))
-            IconButton(
-                onClick = { controller?.seekToNextMediaItem() },
-                modifier = Modifier.size(24.dp)
+            NowPlayingPreviewControlButton(
+                iconRes = R.drawable.ic_next,
+                contentDescriptionRes = R.string.next_track_button
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_next),
-                    contentDescription = stringResource(id = R.string.play_pause_button),
-                )
+                controller?.seekToNextMediaItem()
             }
-
         }
 
         val progress =
@@ -406,6 +407,25 @@ fun NowPlayingPreview(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
+        )
+    }
+}
+
+@Composable
+fun NowPlayingPreviewControlButton(
+    @DrawableRes iconRes: Int,
+    @StringRes contentDescriptionRes: Int,
+    onClick: () -> Unit
+) {
+    IconButton(
+        onClick = onClick,
+    ) {
+        Icon(
+            painter = painterResource(id = iconRes),
+            contentDescription = stringResource(id = contentDescriptionRes),
+            modifier = Modifier
+                .padding(8.dp)
+                .size(24.dp)
         )
     }
 }

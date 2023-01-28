@@ -40,12 +40,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.palette.graphics.Palette
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.rickinc.decibels.R
 import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.ui.theme.LightBlack
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.ui.theme.Typography
+import com.rickinc.decibels.presentation.util.clickable
 import com.rickinc.decibels.presentation.util.formatTrackDuration
 
 
@@ -70,7 +70,6 @@ fun NowPlayingScreen(
     uiState: NowPlayingState.TrackLoaded,
     goBack: () -> Unit
 ) {
-    val systemController = rememberSystemUiController()
     val primaryBackgroundColor = LightBlack
     val secondaryBackgroundColor = MaterialTheme.colorScheme.primary
     val trackThumbnail = uiState.currentTrack.thumbnail
@@ -96,10 +95,6 @@ fun NowPlayingScreen(
             backgroundColor = primaryBackgroundColor
             color = secondaryBackgroundColor
         }
-    }
-
-    LaunchedEffect(key1 = Unit) {
-        systemController.setStatusBarColor(Color.Transparent)
     }
 
     Scaffold(
@@ -179,7 +174,6 @@ fun NowPlayingScreen(
                     activeTrackColor = MaterialTheme.colorScheme.onBackground
                 ),
                 valueRange = 0f..uiState.currentTrack.trackLength.toFloat(),
-                thumb = { SliderThumb() },
                 modifier = Modifier
                     .constrainAs(seekBar) {
                         start.linkTo(parent.start)
@@ -302,15 +296,6 @@ fun NowPlayingScreen(
 }
 
 @Composable
-fun SliderThumb() {
-    Box(
-        modifier = Modifier
-            .size(12.dp)
-            .background(MaterialTheme.colorScheme.onBackground, CircleShape)
-    )
-}
-
-@Composable
 fun NowPlayingControlButton(
     @DrawableRes iconRes: Int,
     @StringRes contentDesc: Int,
@@ -338,9 +323,12 @@ fun NowPlayingControlButton(
     modifier: Modifier,
     onClick: () -> Unit
 ) {
-    IconButton(
-        onClick = onClick,
+    Box(
         modifier = modifier
+            .clickable(
+                shape = CircleShape,
+                onClick = onClick
+            )
             .background(backgroundColor, CircleShape)
             .padding(8.dp)
     ) {
