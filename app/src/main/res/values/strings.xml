@@ -20,4 +20,12 @@
     <string name="storage_permission_denied_message">Storage permission is required for Decibels to proceed. Please grant the permission</string>
     <string name="storage_permission_permanently_denied_message">"Storage permission is required for Decibels to proceed. Do you want to grant the permission? "</string>
     <string name="grant_permission">Grant permission</string>
+    <string name="play">Play</string>
+    <string name="add_to_playlist">Add to Playlist</string>
+    <string name="edit_track_info">Edit Track Info</string>
+    <string name="share">Share</string>
+    <string name="delete">Delete</string>
+    <string name="play_next">Play Next</string>
+    <string name="set_as_ringtone">Set As Ringtone</string>
+    <string name="song_s_will_be_played_next">1 song will be played next</string>
 </resources>

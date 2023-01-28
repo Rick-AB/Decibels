@@ -2,7 +2,6 @@ package com.rickinc.decibels.presentation.tracklist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.MediaItem
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.domain.util.TrackConverter
@@ -32,8 +31,9 @@ class TrackListViewModel @Inject constructor(
             val result = audioRepo.getAudioFiles()
             result.fold(
                 onSuccess = { tracks ->
-                    _uiState.update { TrackListState.DataLoaded(tracks) }
+                    val tracksAsMediaItems = trackConverter.toMediaItems(tracks)
                     this@TrackListViewModel.tracks.addAll(tracks)
+                    _uiState.update { TrackListState.DataLoaded(tracks, tracksAsMediaItems) }
                 },
                 onFailure = { error ->
                     _uiState.update { TrackListState.Error(error.errorMessage) }
@@ -46,23 +46,4 @@ class TrackListViewModel @Inject constructor(
         _nowPlayingTrack.update { selectedTrack }
     }
 
-    fun getMediaItem(track: Track): MediaItem {
-        return trackConverter.toMediaItem(track)
-    }
-
-    fun getMediaItems(tracks: List<Track>): List<MediaItem> {
-        return trackConverter.toMediaItems(tracks)
-    }
-
-    fun getMediaItems(): List<MediaItem> {
-        return trackConverter.toMediaItems(tracks)
-    }
-
-    fun getIndexOfTrack(trackId: Long): Int {
-        return tracks.indexOfFirst { it.trackId == trackId }
-    }
-
-    fun getTrack(trackId: Long): Track? {
-        return tracks.find { it.trackId == trackId }
-    }
 }
