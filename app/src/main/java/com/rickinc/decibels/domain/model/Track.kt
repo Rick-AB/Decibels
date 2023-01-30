@@ -1,9 +1,6 @@
 package com.rickinc.decibels.domain.model
 
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import androidx.room.Entity
 import androidx.room.PrimaryKey

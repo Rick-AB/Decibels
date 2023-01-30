@@ -7,6 +7,8 @@ import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
 import androidx.annotation.StringRes
+import androidx.datastore.dataStore
+import com.rickinc.decibels.domain.serializer.NowPlayingSerializer
 
 fun Context.openAppSettings() {
     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
@@ -34,3 +36,5 @@ fun Context.showShortToast(@StringRes stringRes: Int) {
 fun Context.showLongToast(@StringRes stringRes: Int) {
     Toast.makeText(this, getString(stringRes), Toast.LENGTH_LONG).show()
 }
+
+val Context.dataStore by dataStore("now-playing.json", NowPlayingSerializer)
