@@ -32,6 +32,7 @@ import com.rickinc.decibels.presentation.nowplaying.NowPlayingViewModel
 import com.rickinc.decibels.presentation.ui.theme.DecibelsTheme
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -79,20 +80,7 @@ class MainActivity : ComponentActivity() {
             controller = controllerFuture.get()
             setControllerListener()
             setPlayerListener()
-            setupLastPlayed()
         }, MoreExecutors.directExecutor())
-    }
-
-    private fun setupLastPlayed() {
-        val currentMediaItem = controller?.currentMediaItem
-        if (currentMediaItem != null) {
-            nowPlayingViewModel.onEvent(
-                NowPlayingEvent.OnMediaItemChanged(currentMediaItem)
-            )
-            nowPlayingViewModel.onEvent(
-                NowPlayingEvent.OnProgressChanged(player.currentPosition)
-            )
-        }
     }
 
     private fun setControllerListener() {
@@ -140,7 +128,6 @@ class MainActivity : ComponentActivity() {
         player.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 super.onPlaybackStateChanged(playbackState)
-                getPlaybackStateName(playbackState)
                 updateNowPlayingProgress()
             }
         })
