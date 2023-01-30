@@ -166,6 +166,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        Timber.d("onResume :: ${::player.isInitialized}")
+        if (::player.isInitialized) {
+            Timber.d("onResume :: ${player.currentMediaItem}")
+            Timber.d("onResume :: ${player.isPlaying}")
+        }
+        nowPlayingViewModel.onEvent(NowPlayingEvent.OnMediaItemChanged(controller?.currentMediaItem))
+        nowPlayingViewModel.onEvent(
+            NowPlayingEvent.OnIsPlayingChanged(
+                controller?.isPlaying ?: false
+            )
+        )
+    }
+
     override fun onStart() {
         super.onStart()
         initializeController()

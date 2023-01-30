@@ -1,8 +1,11 @@
 package com.rickinc.decibels.domain.serializer
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.datastore.core.Serializer
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -11,7 +14,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 
-object BitmapSerializer : Serializer<Bitmap?> {
+object BitmapSerializerr : Serializer<Bitmap?> {
     private var buffer: ByteBuffer? = null
     private var byteArray: ByteArray? = null
 
@@ -70,62 +73,74 @@ object BitmapSerializer : Serializer<Bitmap?> {
     }
 }
 
-object VSeiralizer : KSerializer<Bitmap?> {
-    private var buffer: ByteBuffer? = null
-    private var byteArray: ByteArray? = null
-
-    override fun deserialize(decoder: Decoder): Bitmap? {
-        val rowBytes = decoder.decodeInt()
-        val height = decoder.decodeInt()
-        val width = decoder.decodeInt()
-        val bitmapSize = decoder.decodeInt()
-
-        if (byteArray == null || bitmapSize > byteArray!!.size)
-            byteArray = ByteArray(bitmapSize)
-
-        var offset = 0
-//        while (decoder.) {
-//            offset += input.read(byteArray, offset, input.available())
-//        }
-
-        if (buffer == null || bitmapSize > buffer!!.capacity())
-            buffer = ByteBuffer.allocate(bitmapSize)
-
-        buffer!!.position(0)
-        buffer!!.put(byteArray!!)
-        buffer!!.position(0)
-
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
-        bitmap.copyPixelsFromBuffer(buffer)
-        return bitmap
-    }
+object BitmapSerializer : KSerializer<Bitmap?> {
+//    private var buffer: ByteBuffer? = null
+//    private var byteArray: ByteArray? = null
 
     override val descriptor: SerialDescriptor
-        get() = TODO("Not yet implemented")
+        get() = PrimitiveSerialDescriptor("bitmap", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder): Bitmap? {
+        val byteArray = decoder.decodeString().toByteArray()
+        return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+
+
+//        val rowBytes = decoder.decodeInt()
+//        val height = decoder.decodeInt()
+//        val width = decoder.decodeInt()
+//        val bitmapSize = decoder.decodeInt()
+//
+//        decoder.decodeString()
+//
+//        byteArray?.decodeToString()
+//
+//        if (byteArray == null || bitmapSize > byteArray!!.size)
+//            byteArray = ByteArray(bitmapSize)
+//
+//        var offset = 0
+////        while (decoder.) {
+////            offset += input.read(byteArray, offset, input.available())
+////        }
+//
+//        if (buffer == null || bitmapSize > buffer!!.capacity())
+//            buffer = ByteBuffer.allocate(bitmapSize)
+//
+//        buffer!!.position(0)
+//        buffer!!.put(byteArray!!)
+//        buffer!!.position(0)
+//
+//        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
+//        bitmap.copyPixelsFromBuffer(buffer)
+    }
 
     override fun serialize(encoder: Encoder, value: Bitmap?) {
-        val outputStream = ByteArrayOutputStream()
         if (value == null) return
 
-        encoder.encodeInt(value.rowBytes)
-        encoder.encodeInt(value.height)
-        encoder.encodeInt(value.width)
+        val outputStream = ByteArrayOutputStream()
+        value.compress(Bitmap.CompressFormat.PNG, 90, outputStream)
 
-        val bitmapSize = value.rowBytes * value.height
-        if (buffer == null || bitmapSize > buffer!!.capacity())
-            buffer = ByteBuffer.allocate(bitmapSize)
+        val byteArray = outputStream.toByteArray()
+        encoder.encodeString(byteArray.decodeToString())
 
-        encoder.encodeInt(buffer!!.capacity())
-
-        buffer!!.position(0)
-
-        value.copyPixelsToBuffer(buffer)
-        if (byteArray == null || bitmapSize > byteArray!!.size)
-            byteArray = ByteArray(bitmapSize)
-
-        buffer!!.position(0)
-        buffer!!.get(byteArray!!)
-
-        encoder.encodeString(byteArray!!.decodeToString())
+//        encoder.encodeInt(value.rowBytes)
+//        encoder.encodeInt(value.height)
+//        encoder.encodeInt(value.width)
+//
+//        val bitmapSize = value.rowBytes * value.height
+//        if (buffer == null || bitmapSize > buffer!!.capacity())
+//            buffer = ByteBuffer.allocate(bitmapSize)
+//
+//        encoder.encodeInt(buffer!!.capacity())
+//
+//        buffer!!.position(0)
+//
+//        value.copyPixelsToBuffer(buffer)
+//        if (byteArray == null || bitmapSize > byteArray!!.size)
+//            byteArray = ByteArray(bitmapSize)
+//
+//        buffer!!.position(0)
+//        buffer!!.get(byteArray!!)
+//
+//        encoder.encodeString(byteArray!!.decodeToString())
     }
 }

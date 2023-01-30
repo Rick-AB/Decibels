@@ -6,13 +6,17 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import com.rickinc.decibels.domain.model.Result
 import com.rickinc.decibels.domain.model.Track
+import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.domain.util.TrackConverter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class NowPlayingViewModel @Inject constructor(
+    audioRepository: AudioRepository,
     private val trackConverter: TrackConverter
 ) : ViewModel() {
     private val isPlayingFlow = MutableStateFlow(false)
@@ -22,6 +26,42 @@ class NowPlayingViewModel @Inject constructor(
     private val errorFlow = MutableStateFlow<PlaybackException?>(null)
     private val progressFlow = MutableStateFlow(0L)
 
+    init {
+        viewModelScope.launch {
+            val savedNowPlayingState = audioRepository.getNowPlaying() ?: return@launch
+            isPlayingFlow.update { savedNowPlayingState.isPlaying }
+            isShuffleActiveFlow.update { savedNowPlayingState.shuffleActive }
+            repeatModeFlow.update { savedNowPlayingState.repeatMode }
+            currentTrackFlow.update { savedNowPlayingState.track }
+        }
+    }
+
+
+    private val nowPlayingFlow = audioRepository.getNowPlayingFlow()
+    val uiStates =
+        combine(nowPlayingFlow, progressFlow, errorFlow) { nowPlaying, progress, exception ->
+            when {
+                nowPlaying != null -> {
+                    NowPlayingState.TrackLoaded(
+                        nowPlaying.track,
+                        nowPlaying.isPlaying,
+                        nowPlaying.repeatMode,
+                        nowPlaying.shuffleActive,
+                        progress
+                    )
+                }
+
+                exception != null -> {
+                    val errorMessage = exception.localizedMessage ?: ""
+                    NowPlayingState.ErrorLoadingTrack(Result.Error(errorMessage))
+                }
+
+                else -> {
+                    NowPlayingState.ErrorLoadingTrack(Result.Error("Something went wrong"))
+                }
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), initialValue = null)
+
     val uiState = combine(
         isPlayingFlow,
         isShuffleActiveFlow,
@@ -30,25 +70,24 @@ class NowPlayingViewModel @Inject constructor(
         progressFlow,
         errorFlow
     ) { valuesArray ->
-        if (valuesArray[3] != null) {
-            NowPlayingState.TrackLoaded(
-                valuesArray[3] as Track,
-                valuesArray[0] as Boolean,
-                valuesArray[2] as Int,
-                valuesArray[1] as Boolean,
-                valuesArray[4] as Long
-            )
-        } else {
-            if (valuesArray[5] != null) {
-                NowPlayingState.ErrorLoadingTrack(
-                    Result.Error(
-                        (valuesArray[5] as PlaybackException).localizedMessage ?: ""
-                    )
+        when {
+            valuesArray[3] != null -> {
+                NowPlayingState.TrackLoaded(
+                    valuesArray[3] as Track,
+                    valuesArray[0] as Boolean,
+                    valuesArray[2] as Int,
+                    valuesArray[1] as Boolean,
+                    valuesArray[4] as Long
                 )
-            } else {
-                NowPlayingState.ErrorLoadingTrack(
-                    Result.Error("Something went wrong")
-                )
+            }
+
+            valuesArray[5] != null -> {
+                val errorMessage = (valuesArray[5] as PlaybackException).localizedMessage ?: ""
+                NowPlayingState.ErrorLoadingTrack(Result.Error(errorMessage))
+            }
+
+            else -> {
+                NowPlayingState.ErrorLoadingTrack(Result.Error("Something went wrong"))
             }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), initialValue = null)
