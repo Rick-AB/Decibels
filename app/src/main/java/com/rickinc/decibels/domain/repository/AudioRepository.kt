@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface AudioRepository {
     suspend fun getAudioFiles(): Result<List<Track>>
-    suspend fun updateNowPlaying(track: NowPlaying)
+    suspend fun updateNowPlaying(nowPlaying: NowPlaying)
     fun getNowPlayingFlow(): Flow<NowPlaying?>
-    suspend fun getNowPlaying(): NowPlaying?
 }

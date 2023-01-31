@@ -18,7 +18,6 @@ import com.rickinc.decibels.domain.model.NowPlaying
 import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.domain.util.TrackConverter
 import com.rickinc.decibels.domain.util.TrackConverter.Companion.CONTENT_URI_KEY
-import com.rickinc.decibels.presentation.nowplaying.NowPlayingEvent
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +51,7 @@ class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
     override fun onCreate() {
         super.onCreate()
         initMediaSession()
+        setPlayerListener()
         setPlayerAttributes()
     }
 
@@ -68,7 +68,7 @@ class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
         (player as ExoPlayer).setAudioAttributes(audioAttributes, true)
     }
 
-    private fun setControllerListener() {
+    private fun setPlayerListener() {
         player.addListener(object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 super.onMediaItemTransition(mediaItem, reason)
@@ -98,17 +98,15 @@ class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
     }
 
     private fun updateNowPlaying() {
-        Timber.d("CALLED")
         if (player.currentMediaItem == null) return
 
         val track = trackConverter.toTrack(player.currentMediaItem!!)
         val isPlaying = player.isPlaying
         val repeatMode = player.repeatMode
         val shuffleActive = player.shuffleModeEnabled
-        val nowPlaying = NowPlaying(track, isPlaying, repeatMode, shuffleActive)
+        val nowPlaying = NowPlaying(0, track, isPlaying, repeatMode, shuffleActive)
         scope.launch {
             audioRepository.updateNowPlaying(nowPlaying)
-            Timber.d("CALLED :: FINISHED")
         }
     }
 

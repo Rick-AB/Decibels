@@ -18,8 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSessionService
@@ -32,7 +30,6 @@ import com.rickinc.decibels.presentation.nowplaying.NowPlayingViewModel
 import com.rickinc.decibels.presentation.ui.theme.DecibelsTheme
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -61,7 +58,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            DecibelsTheme(darkTheme = true, dynamicColor = false) {
+            DecibelsTheme(useDarkTheme = true, dynamicColor = false) {
                 CompositionLocalProvider(LocalController provides controller) {
                     Box(modifier = Modifier.fillMaxSize()) {
                         MainActivityLayout()
@@ -78,50 +75,8 @@ class MainActivity : ComponentActivity() {
         controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
         controllerFuture.addListener({
             controller = controllerFuture.get()
-            setControllerListener()
             setPlayerListener()
         }, MoreExecutors.directExecutor())
-    }
-
-    private fun setControllerListener() {
-        controller?.addListener(object : Player.Listener {
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                super.onMediaItemTransition(mediaItem, reason)
-                nowPlayingViewModel.onEvent(
-                    NowPlayingEvent.OnMediaItemChanged(
-                        controller?.currentMediaItem
-                    )
-                )
-            }
-
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                super.onIsPlayingChanged(isPlaying)
-                nowPlayingViewModel.onEvent(
-                    NowPlayingEvent.OnIsPlayingChanged(
-                        controller?.isPlaying ?: false
-                    )
-                )
-            }
-
-            override fun onRepeatModeChanged(repeatMode: Int) {
-                super.onRepeatModeChanged(repeatMode)
-                nowPlayingViewModel.onEvent(NowPlayingEvent.OnRepeatModeChanged(repeatMode))
-            }
-
-            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-                super.onShuffleModeEnabledChanged(shuffleModeEnabled)
-                nowPlayingViewModel.onEvent(
-                    NowPlayingEvent.OnShuffleActiveChanged(
-                        shuffleModeEnabled
-                    )
-                )
-            }
-
-            override fun onPlayerErrorChanged(error: PlaybackException?) {
-                super.onPlayerErrorChanged(error)
-                nowPlayingViewModel.onEvent(NowPlayingEvent.OnError(error))
-            }
-        })
     }
 
     private fun setPlayerListener() {
@@ -168,17 +123,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        Timber.d("onResume :: ${::player.isInitialized}")
         if (::player.isInitialized) {
-            Timber.d("onResume :: ${player.currentMediaItem}")
-            Timber.d("onResume :: ${player.isPlaying}")
+            nowPlayingViewModel.onEvent(NowPlayingEvent.OnMediaItemChanged(player.currentMediaItem))
+            nowPlayingViewModel.onEvent(NowPlayingEvent.OnIsPlayingChanged(player.isPlaying))
         }
-        nowPlayingViewModel.onEvent(NowPlayingEvent.OnMediaItemChanged(controller?.currentMediaItem))
-        nowPlayingViewModel.onEvent(
-            NowPlayingEvent.OnIsPlayingChanged(
-                controller?.isPlaying ?: false
-            )
-        )
     }
 
     override fun onStart() {

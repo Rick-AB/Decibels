@@ -10,20 +10,22 @@ import android.provider.MediaStore
 import android.util.Size
 import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
+import com.rickinc.decibels.data.local.database.DecibelsDatabase
 import com.rickinc.decibels.domain.model.NowPlaying
 import com.rickinc.decibels.domain.model.Result
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.domain.util.TrackConverter.Companion.MP3
-import com.rickinc.decibels.presentation.util.dataStore
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import java.io.IOException
 
 class AudioRepositoryImpl(
     private val context: Context,
+    decibelsDatabase: DecibelsDatabase
 ) : AudioRepository {
+    private val dao = decibelsDatabase.dao
+
     @RequiresApi(Build.VERSION_CODES.Q)
     override suspend fun getAudioFiles(): Result<List<Track>> {
         return withContext(Dispatchers.IO) {
@@ -92,19 +94,11 @@ class AudioRepositoryImpl(
         }
     }
 
-    override suspend fun updateNowPlaying(track: NowPlaying) {
-        withContext(Dispatchers.IO) {
-            context.dataStore.updateData { track }
-        }
+    override suspend fun updateNowPlaying(nowPlaying: NowPlaying) {
+        dao.updateNowPlaying(nowPlaying)
     }
 
-    override fun getNowPlayingFlow(): Flow<NowPlaying?> = context.dataStore.data
-
-    override suspend fun getNowPlaying(): NowPlaying? {
-        return withContext(Dispatchers.IO) {
-            context.dataStore.data.first()
-        }
-    }
+    override fun getNowPlayingFlow(): Flow<NowPlaying?> = dao.getNowPlaying()
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private suspend fun getTracksWithThumbnail(tracks: List<Track>): List<Track> {

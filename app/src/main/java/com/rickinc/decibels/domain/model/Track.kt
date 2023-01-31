@@ -4,11 +4,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.rickinc.decibels.domain.serializer.BitmapSerializer
-import com.rickinc.decibels.domain.serializer.UriAsStringSerializer
-import kotlinx.serialization.Serializable
 
-@Serializable
 @Entity
 data class Track(
     @PrimaryKey(autoGenerate = false)
@@ -17,9 +13,7 @@ data class Track(
     val trackLength: Int,
     val artist: String,
     val albumId: Long,
-    @Serializable(with = UriAsStringSerializer::class)
     val contentUri: Uri?,
-    @Serializable(with = BitmapSerializer::class)
     val thumbnail: Bitmap? = null,
     val mimeType: String?
 ) {

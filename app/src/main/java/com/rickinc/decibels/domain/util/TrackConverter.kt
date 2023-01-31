@@ -19,7 +19,7 @@ class TrackConverter @Inject constructor() {
         const val MP3 = "mp3"
     }
 
-    fun toMediaItem(track: Track): MediaItem {
+    private fun toMediaItem(track: Track): MediaItem {
         val extra = Bundle()
         extra.putString(CONTENT_URI_KEY, track.contentUri.toString())
         extra.putInt(TRACK_LENGTH_KEY, track.trackLength)
@@ -42,11 +42,7 @@ class TrackConverter @Inject constructor() {
     }
 
     fun toMediaItems(tracks: List<Track>): List<MediaItem> {
-        val mediaItems = tracks.map {
-            toMediaItem(it)
-        }
-
-        return mediaItems
+        return tracks.map { toMediaItem(it) }
     }
 
     @Suppress("DEPRECATION")
