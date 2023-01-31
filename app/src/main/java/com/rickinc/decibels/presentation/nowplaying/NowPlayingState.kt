@@ -5,11 +5,12 @@ import com.rickinc.decibels.domain.model.Track
 
 sealed interface NowPlayingState {
     data class TrackLoaded(
-        val currentTrack: Track,
+        val track: Track,
         val isPlaying: Boolean,
         val repeatMode: Int,
         val isShuffleActive: Boolean,
-        val progress: Long
+        val progress: Long,
+        val playbackState: Int
     ) : NowPlayingState
 
     data class ErrorLoadingTrack(val error: Result.Error) : NowPlayingState

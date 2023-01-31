@@ -10,4 +10,5 @@ sealed class NowPlayingEvent {
     data class OnRepeatModeChanged(val repeatMode: Int) : NowPlayingEvent()
     data class OnError(val error: PlaybackException?) : NowPlayingEvent()
     data class OnProgressChanged(val progress: Long) : NowPlayingEvent()
+    data class OnPlaybackStateChanged(val playbackState: Int) : NowPlayingEvent()
 }

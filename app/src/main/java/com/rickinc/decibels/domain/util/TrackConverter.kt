@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.rickinc.decibels.domain.model.Track
+import timber.log.Timber
 import javax.inject.Inject
 
 class TrackConverter @Inject constructor() {
@@ -17,6 +18,7 @@ class TrackConverter @Inject constructor() {
         const val ALBUM_ID_KEY = "album_id"
         const val THUMBNAIL_KEY = "thumbnail"
         const val MP3 = "mp3"
+        const val HAS_THUMBNAIL = "has_thumbnail"
     }
 
     private fun toMediaItem(track: Track): MediaItem {
@@ -26,6 +28,7 @@ class TrackConverter @Inject constructor() {
         extra.putLong(ALBUM_ID_KEY, track.albumId)
         extra.putString(MP3, track.mimeType)
         extra.putParcelable(THUMBNAIL_KEY, track.thumbnail)
+        extra.putBoolean(HAS_THUMBNAIL, track.hasThumbnail)
 
         val mediaMetadata =
             MediaMetadata.Builder().setDisplayTitle(track.trackTitle)
@@ -62,6 +65,7 @@ class TrackConverter @Inject constructor() {
             bundle.getParcelable(THUMBNAIL_KEY)
         }
         val mimeType = bundle.getString(MP3)
+        val hasThumbnail = bundle.getBoolean(HAS_THUMBNAIL)
 
         return Track(
             trackId,
@@ -71,7 +75,8 @@ class TrackConverter @Inject constructor() {
             albumId,
             contentUri,
             thumbnail,
-            mimeType
+            mimeType,
+            hasThumbnail
         )
     }
 }

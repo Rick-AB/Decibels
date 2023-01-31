@@ -188,7 +188,7 @@ fun TrackList(
 
             if (nowPlayingState is NowPlayingState.TrackLoaded) {
                 NowPlayingPreview(nowPlayingState, Modifier.align(Alignment.BottomCenter)) {
-                    onTrackItemClick(nowPlayingState.currentTrack)
+                    onTrackItemClick(nowPlayingState.track)
                 }
             }
         }
@@ -345,7 +345,7 @@ fun NowPlayingPreview(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
-            val thumbnail = nowPlayingState.currentTrack.thumbnail
+            val thumbnail = nowPlayingState.track.thumbnail
             if (thumbnail != null) {
                 Image(
                     bitmap = thumbnail.asImageBitmap(),
@@ -367,13 +367,13 @@ fun NowPlayingPreview(
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = nowPlayingState.currentTrack.trackTitle,
+                    text = nowPlayingState.track.trackTitle,
                     style = Typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1
                 )
                 Text(
-                    text = nowPlayingState.currentTrack.artist,
+                    text = nowPlayingState.track.artist,
                     style = Typography.bodySmall,
                 )
             }
@@ -398,7 +398,7 @@ fun NowPlayingPreview(
         }
 
         val progress =
-            nowPlayingState.progress.toFloat().div(nowPlayingState.currentTrack.trackLength)
+            nowPlayingState.progress.toFloat().div(nowPlayingState.track.trackLength)
         Spacer(modifier = Modifier.height(8.dp))
         LinearProgressIndicator(
             progress = progress,

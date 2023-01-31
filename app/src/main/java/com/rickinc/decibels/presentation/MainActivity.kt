@@ -83,6 +83,7 @@ class MainActivity : ComponentActivity() {
         player.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 super.onPlaybackStateChanged(playbackState)
+                nowPlayingViewModel.onEvent(NowPlayingEvent.OnPlaybackStateChanged(playbackState))
                 updateNowPlayingProgress()
             }
         })
@@ -121,13 +122,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (::player.isInitialized) {
-            nowPlayingViewModel.onEvent(NowPlayingEvent.OnMediaItemChanged(player.currentMediaItem))
-            nowPlayingViewModel.onEvent(NowPlayingEvent.OnIsPlayingChanged(player.isPlaying))
-        }
-    }
+//    override fun onResume() {
+//        super.onResume()
+//        if (::player.isInitialized) {
+//            nowPlayingViewModel.onEvent(NowPlayingEvent.OnMediaItemChanged(player.currentMediaItem))
+//            nowPlayingViewModel.onEvent(NowPlayingEvent.OnIsPlayingChanged(player.isPlaying))
+//        }
+//    }
 
     override fun onStart() {
         super.onStart()

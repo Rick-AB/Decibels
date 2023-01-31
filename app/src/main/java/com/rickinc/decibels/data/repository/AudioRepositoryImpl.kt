@@ -10,6 +10,7 @@ import android.provider.MediaStore
 import android.util.Size
 import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
+import com.rickinc.decibels.R
 import com.rickinc.decibels.data.local.database.DecibelsDatabase
 import com.rickinc.decibels.domain.model.NowPlaying
 import com.rickinc.decibels.domain.model.Result
@@ -18,6 +19,7 @@ import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.domain.util.TrackConverter.Companion.MP3
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
+import timber.log.Timber
 import java.io.IOException
 
 class AudioRepositoryImpl(
@@ -83,7 +85,8 @@ class AudioRepositoryImpl(
                                 artist = artist,
                                 albumId = albumId,
                                 contentUri = contentUri,
-                                mimeType = mimeType
+                                mimeType = mimeType,
+                                hasThumbnail = false
                             )
                         )
                     }
@@ -105,7 +108,12 @@ class AudioRepositoryImpl(
         val result: List<Track>
         coroutineScope {
             result = tracks.map {
-                async { it.copy(thumbnail = getThumbnailAfterQ(it.contentUri!!)) }
+                async {
+                    val thumbnailResult = getThumbnailAfterQ(it.contentUri!!)
+                    val thumbnail = thumbnailResult.first
+                    val hasOriginalBitmap = thumbnailResult.second
+                    it.copy(thumbnail = thumbnail, hasThumbnail = hasOriginalBitmap)
+                }
             }.awaitAll()
         }
 
@@ -117,11 +125,17 @@ class AudioRepositoryImpl(
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun getThumbnailAfterQ(contentUri: Uri): Bitmap? {
+    private fun getThumbnailAfterQ(contentUri: Uri): Pair<Bitmap, Boolean> {
         return try {
-            context.contentResolver.loadThumbnail(contentUri, Size(300, 300), null)
+            val bitmap = context.contentResolver.loadThumbnail(contentUri, Size(300, 300), null)
+            Pair(bitmap, true)
         } catch (e: IOException) {
-            null
+            val bitmap = BitmapFactory.decodeResource(
+                context.resources,
+                R.drawable.ic_baseline_audio_file_24
+            )
+            Timber.d("BITMAP :: $bitmap")
+            Pair(bitmap, false)
         }
     }
 }

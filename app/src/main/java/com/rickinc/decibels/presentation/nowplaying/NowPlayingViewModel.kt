@@ -15,9 +15,15 @@ class NowPlayingViewModel @Inject constructor(
 ) : ViewModel() {
     private val errorFlow = MutableStateFlow<PlaybackException?>(null)
     private val progressFlow = MutableStateFlow(0L)
+    private val playbackStateFlow = MutableStateFlow(-1)
     private val nowPlayingFlow = audioRepository.getNowPlayingFlow()
     val uiState =
-        combine(nowPlayingFlow, progressFlow, errorFlow) { nowPlaying, progress, exception ->
+        combine(
+            nowPlayingFlow,
+            progressFlow,
+            playbackStateFlow,
+            errorFlow
+        ) { nowPlaying, progress, playbackState, exception ->
             when {
                 nowPlaying != null -> {
                     NowPlayingState.TrackLoaded(
@@ -25,7 +31,8 @@ class NowPlayingViewModel @Inject constructor(
                         nowPlaying.isPlaying,
                         nowPlaying.repeatMode,
                         nowPlaying.shuffleActive,
-                        progress
+                        progress,
+                        playbackState
                     )
                 }
 
@@ -42,6 +49,7 @@ class NowPlayingViewModel @Inject constructor(
         when (event) {
             is NowPlayingEvent.OnError -> errorFlow.update { event.error }
             is NowPlayingEvent.OnProgressChanged -> progressFlow.update { event.progress }
+            is NowPlayingEvent.OnPlaybackStateChanged -> playbackStateFlow.update { event.playbackState }
             else -> {}
         }
     }

@@ -72,7 +72,8 @@ fun NowPlayingScreen(
 ) {
     val primaryBackgroundColor = LightBlack
     val secondaryBackgroundColor = MaterialTheme.colorScheme.primary
-    val trackThumbnail = uiState.currentTrack.thumbnail
+    val hasThumbnail = uiState.track.hasThumbnail
+    val trackThumbnail = uiState.track.thumbnail!!
     val controller = LocalController.current
 
     var backgroundColor by remember { mutableStateOf(primaryBackgroundColor) }
@@ -81,9 +82,9 @@ fun NowPlayingScreen(
     var color by remember { mutableStateOf(secondaryBackgroundColor) }
     val animatedColor by animateColorAsState(targetValue = color)
 
-    LaunchedEffect(key1 = trackThumbnail) {
-        trackThumbnail?.let {
-            Palette.from(it).generate { palette ->
+    LaunchedEffect(key1 = hasThumbnail) {
+        if (hasThumbnail) {
+            Palette.from(trackThumbnail).generate { palette ->
                 val rgb = palette?.dominantSwatch?.rgb!!
                 val r = android.graphics.Color.red(rgb).times(0.22).toInt()
                 val g = android.graphics.Color.green(rgb).times(0.22).toInt()
@@ -91,10 +92,14 @@ fun NowPlayingScreen(
                 backgroundColor = Color(r, g, b)
                 color = Color(rgb)
             }
-        } ?: run {
+        } else {
             backgroundColor = primaryBackgroundColor
             color = secondaryBackgroundColor
         }
+    }
+
+    val showTrackInfo = remember(uiState) {
+        uiState.track.trackId.toString() == controller?.currentMediaItem?.mediaId
     }
 
     Scaffold(
@@ -113,7 +118,7 @@ fun NowPlayingScreen(
 
             val guideLine = createGuidelineFromTop(0.55f)
 
-            if (trackThumbnail != null) {
+            if (showTrackInfo) {
                 Image(
                     bitmap = trackThumbnail.asImageBitmap(),
                     contentDescription = stringResource(id = R.string.album_art),
@@ -140,9 +145,9 @@ fun NowPlayingScreen(
                 )
             }
 
-            val trackName = uiState.currentTrack.trackTitle
+            val trackName = uiState.track.trackTitle
             Text(
-                text = trackName,
+                text = if (showTrackInfo) trackName else stringResource(R.string.long_dash),
                 style = Typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
@@ -153,9 +158,9 @@ fun NowPlayingScreen(
                 }
             )
 
-            val artist = uiState.currentTrack.artist
+            val artist = uiState.track.artist
             Text(
-                text = artist,
+                text = if (showTrackInfo) artist else stringResource(id = R.string.long_dash),
                 style = Typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.constrainAs(artistComposable) {
@@ -173,7 +178,7 @@ fun NowPlayingScreen(
                     thumbColor = MaterialTheme.colorScheme.onBackground,
                     activeTrackColor = MaterialTheme.colorScheme.onBackground
                 ),
-                valueRange = 0f..uiState.currentTrack.trackLength.toFloat(),
+                valueRange = 0f..uiState.track.trackLength.toFloat(),
                 modifier = Modifier
                     .constrainAs(seekBar) {
                         start.linkTo(parent.start)
@@ -185,7 +190,7 @@ fun NowPlayingScreen(
 
             val currentDuration = formatTrackDuration(uiState.progress)
             Text(
-                text = currentDuration,
+                text = if (showTrackInfo) currentDuration else "--",
                 style = Typography.bodyMedium,
                 modifier = Modifier.constrainAs(currentDurationComposable) {
                     start.linkTo(seekBar.start)
@@ -193,9 +198,9 @@ fun NowPlayingScreen(
                 }
             )
 
-            val trackDuration = formatTrackDuration(uiState.currentTrack.trackLength.toLong())
+            val trackDuration = formatTrackDuration(uiState.track.trackLength.toLong())
             Text(
-                text = trackDuration,
+                text = if (showTrackInfo) trackDuration else "--",
                 style = Typography.bodyMedium,
                 modifier = Modifier.constrainAs(trackDurationComposable) {
                     end.linkTo(seekBar.end)
