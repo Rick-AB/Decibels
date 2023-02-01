@@ -45,6 +45,34 @@ class NowPlayingViewModel @Inject constructor(
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), initialValue = null)
 
+    val uiStates =
+        combine(
+            nowPlayingFlow,
+            progressFlow,
+            playbackStateFlow,
+            errorFlow
+        ) { nowPlaying, progress, playbackState, exception ->
+            when {
+                nowPlaying != null -> {
+                    NowPlayingState.TrackLoaded(
+                        nowPlaying.track,
+                        nowPlaying.isPlaying,
+                        nowPlaying.repeatMode,
+                        nowPlaying.shuffleActive,
+                        progress,
+                        playbackState
+                    )
+                }
+
+                exception != null -> {
+                    val errorMessage = exception.localizedMessage ?: ""
+                    NowPlayingState.ErrorLoadingTrack(Result.Error(errorMessage))
+                }
+
+                else -> null
+            }
+        }.shareIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
     fun onEvent(event: NowPlayingEvent) {
         when (event) {
             is NowPlayingEvent.OnError -> errorFlow.update { event.error }

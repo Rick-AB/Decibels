@@ -10,7 +10,8 @@ import android.provider.MediaStore
 import android.util.Size
 import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
-import com.rickinc.decibels.R
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import com.rickinc.decibels.data.local.database.DecibelsDatabase
 import com.rickinc.decibels.domain.model.NowPlaying
 import com.rickinc.decibels.domain.model.Result
@@ -19,8 +20,8 @@ import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.domain.util.TrackConverter.Companion.MP3
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import timber.log.Timber
 import java.io.IOException
+
 
 class AudioRepositoryImpl(
     private val context: Context,
@@ -130,11 +131,16 @@ class AudioRepositoryImpl(
             val bitmap = context.contentResolver.loadThumbnail(contentUri, Size(300, 300), null)
             Pair(bitmap, true)
         } catch (e: IOException) {
-            val bitmap = BitmapFactory.decodeResource(
-                context.resources,
-                R.drawable.ic_baseline_audio_file_24
+            val drawable = ContextCompat.getDrawable(
+                context,
+                com.rickinc.decibels.R.drawable.ic_baseline_audio_file_24,
             )
-            Timber.d("BITMAP :: $bitmap")
+
+            val bitmap = drawable!!.toBitmap(
+                width = 300,
+                height = 300,
+                Bitmap.Config.ARGB_8888
+            )
             Pair(bitmap, false)
         }
     }

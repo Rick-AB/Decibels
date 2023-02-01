@@ -8,6 +8,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,6 +32,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -213,15 +216,23 @@ fun TrackItem(
             .padding(start = 16.dp, end = 16.dp, top = 8.dp),
     ) {
         Column(modifier = Modifier.weight(0.7f)) {
-            Text(text = track.trackTitle, style = Typography.titleMedium, maxLines = 1)
+            Text(
+                text = track.trackTitle,
+                style = Typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
 
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = track.artist, style = Typography.bodySmall, maxLines = 1)
+            Text(
+                text = track.artist,
+                style = Typography.bodySmall,
+                maxLines = 1
+            )
         }
 
         val displayTime = formatTrackDuration(track.trackLength.toLong())
         Row(
-
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -335,9 +346,9 @@ fun NowPlayingPreview(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(LightBlack)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable { onClick() }
-            .padding(vertical = 12.dp)
+            .padding(vertical = 6.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -345,55 +356,68 @@ fun NowPlayingPreview(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
-            val thumbnail = nowPlayingState.track.thumbnail
-            if (thumbnail != null) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .weight(0.7f)
+            ) {
+                val thumbnail = nowPlayingState.track.thumbnail
                 Image(
-                    bitmap = thumbnail.asImageBitmap(),
+                    bitmap = thumbnail!!.asImageBitmap(),
                     contentDescription = stringResource(id = R.string.album_art),
                     modifier = Modifier
                         .size(50.dp)
-                        .clip(RoundedCornerShape(4.dp))
+                        .clip(RoundedCornerShape(8.dp))
                 )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_baseline_audio_file_24),
-                    contentDescription = stringResource(id = R.string.album_art),
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+                Crossfade(
+                    targetState = nowPlayingState.track,
+                    animationSpec = tween(500)
+                ) { track ->
+                    Column {
+                        Text(
+                            text = track.trackTitle,
+                            style = Typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = track.artist,
+                            style = Typography.bodySmall,
+                        )
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = nowPlayingState.track.trackTitle,
-                    style = Typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1
-                )
-                Text(
-                    text = nowPlayingState.track.artist,
-                    style = Typography.bodySmall,
-                )
-            }
-
-            val iconId = if (nowPlayingState.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
-            Spacer(modifier = Modifier.width(24.dp))
-            NowPlayingPreviewControlButton(
-                iconRes = iconId,
-                contentDescriptionRes = R.string.play_pause_button
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .weight(0.3f)
+                    .padding(start = 8.dp)
             ) {
-                if (nowPlayingState.isPlaying) controller?.pause()
-                else controller?.play()
-            }
+                val iconId =
+                    if (nowPlayingState.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+                Crossfade(
+                    targetState = iconId,
+                    animationSpec = tween(500)
+                ) { res ->
+                    NowPlayingPreviewControlButton(
+                        iconRes = res,
+                        contentDescriptionRes = R.string.play_pause_button
+                    ) {
+                        if (nowPlayingState.isPlaying) controller?.pause()
+                        else controller?.play()
+                    }
+                }
 
-            Spacer(modifier = Modifier.width(16.dp))
-            NowPlayingPreviewControlButton(
-                iconRes = R.drawable.ic_next,
-                contentDescriptionRes = R.string.next_track_button
-            ) {
-                controller?.seekToNextMediaItem()
+                NowPlayingPreviewControlButton(
+                    iconRes = R.drawable.ic_next,
+                    contentDescriptionRes = R.string.next_track_button
+                ) {
+                    controller?.seekToNextMediaItem()
+                }
             }
         }
 

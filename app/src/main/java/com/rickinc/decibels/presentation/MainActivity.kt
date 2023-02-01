@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -18,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSessionService
@@ -57,6 +59,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+//        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
             DecibelsTheme(useDarkTheme = true, dynamicColor = false) {
                 CompositionLocalProvider(LocalController provides controller) {
@@ -111,24 +115,6 @@ class MainActivity : ComponentActivity() {
             handler.postDelayed(updateNowPlayingAction, delayMs)
         }
     }
-
-    private fun getPlaybackStateName(i: Int): String? {
-        return when (i) {
-            1 -> "STATE_IDLE"
-            2 -> "STATE_BUFFERING"
-            3 -> "STATE_READY"
-            4 -> "STATE_ENDED"
-            else -> null
-        }
-    }
-
-//    override fun onResume() {
-//        super.onResume()
-//        if (::player.isInitialized) {
-//            nowPlayingViewModel.onEvent(NowPlayingEvent.OnMediaItemChanged(player.currentMediaItem))
-//            nowPlayingViewModel.onEvent(NowPlayingEvent.OnIsPlayingChanged(player.isPlaying))
-//        }
-//    }
 
     override fun onStart() {
         super.onStart()

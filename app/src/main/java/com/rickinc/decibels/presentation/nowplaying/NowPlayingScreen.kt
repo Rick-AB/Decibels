@@ -4,7 +4,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -40,6 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.palette.graphics.Palette
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.rickinc.decibels.R
 import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.ui.theme.LightBlack
@@ -70,10 +71,12 @@ fun NowPlayingScreen(
     uiState: NowPlayingState.TrackLoaded,
     goBack: () -> Unit
 ) {
+    val systemUiController = rememberSystemUiController()
     val primaryBackgroundColor = LightBlack
     val secondaryBackgroundColor = MaterialTheme.colorScheme.primary
-    val hasThumbnail = uiState.track.hasThumbnail
-    val trackThumbnail = uiState.track.thumbnail!!
+    val track = uiState.track
+    val hasThumbnail = track.hasThumbnail
+    val trackThumbnail = track.thumbnail!!
     val controller = LocalController.current
 
     var backgroundColor by remember { mutableStateOf(primaryBackgroundColor) }
@@ -82,7 +85,7 @@ fun NowPlayingScreen(
     var color by remember { mutableStateOf(secondaryBackgroundColor) }
     val animatedColor by animateColorAsState(targetValue = color)
 
-    LaunchedEffect(key1 = hasThumbnail) {
+    LaunchedEffect(key1 = trackThumbnail) {
         if (hasThumbnail) {
             Palette.from(trackThumbnail).generate { palette ->
                 val rgb = palette?.dominantSwatch?.rgb!!
@@ -96,10 +99,13 @@ fun NowPlayingScreen(
             backgroundColor = primaryBackgroundColor
             color = secondaryBackgroundColor
         }
+
+        systemUiController.setSystemBarsColor(backgroundColor)
     }
 
-    val showTrackInfo = remember(uiState) {
-        uiState.track.trackId.toString() == controller?.currentMediaItem?.mediaId
+    val showTrackInfo = remember(track) {
+//        track.trackId.toString() == controller?.currentMediaItem?.mediaId
+        true
     }
 
     Scaffold(
@@ -145,30 +151,38 @@ fun NowPlayingScreen(
                 )
             }
 
-            val trackName = uiState.track.trackTitle
-            Text(
-                text = if (showTrackInfo) trackName else stringResource(R.string.long_dash),
-                style = Typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center,
+            Crossfade(
+                targetState = track.trackTitle,
                 modifier = Modifier.constrainAs(trackNameComposable) {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     top.linkTo(guideLine, 16.dp)
                 }
             )
+            { trackName ->
+                Text(
+                    text = trackName,
+                    style = Typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                )
+            }
 
-            val artist = uiState.track.artist
-            Text(
-                text = if (showTrackInfo) artist else stringResource(id = R.string.long_dash),
-                style = Typography.bodyMedium,
-                textAlign = TextAlign.Center,
+            Crossfade(
+                targetState = track.artist,
                 modifier = Modifier.constrainAs(artistComposable) {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     top.linkTo(trackNameComposable.bottom, 8.dp)
                 }
             )
+            { artist ->
+                Text(
+                    text = artist,
+                    style = Typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
+            }
 
             val sliderContentDesc = stringResource(id = R.string.seek_bar)
             Slider(
@@ -238,19 +252,23 @@ fun NowPlayingScreen(
                 controller?.seekToPreviousMediaItem()
             }
 
-            NowPlayingControlButton(
-                iconRes = if (uiState.isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
-                contentDesc = R.string.play_pause_button,
-                size = 40.dp,
-                backgroundColor = animatedColor,
+            Crossfade(
+                targetState = uiState.isPlaying,
                 modifier = Modifier.constrainAs(playPauseButton) {
                     start.linkTo(previousButton.end)
                     end.linkTo(nextButton.start)
                     top.linkTo(seekBar.bottom, 16.dp)
-                },
-            ) {
-                if (uiState.isPlaying) controller?.pause()
-                else controller?.play()
+                }
+            ) { isPlaying ->
+                NowPlayingControlButton(
+                    iconRes = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
+                    contentDesc = R.string.play_pause_button,
+                    size = 40.dp,
+                    backgroundColor = animatedColor
+                ) {
+                    if (uiState.isPlaying) controller?.pause()
+                    else controller?.play()
+                }
             }
 
             NowPlayingControlButton(
@@ -325,7 +343,7 @@ fun NowPlayingControlButton(
     @StringRes contentDesc: Int,
     size: Dp,
     backgroundColor: Color,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     Box(
