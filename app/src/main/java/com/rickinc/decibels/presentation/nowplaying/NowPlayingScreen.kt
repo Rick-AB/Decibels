@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -88,10 +89,11 @@ fun NowPlayingScreen(
     LaunchedEffect(key1 = trackThumbnail) {
         if (hasThumbnail) {
             Palette.from(trackThumbnail).generate { palette ->
+                val multiplicationFactor = 0.22
                 val rgb = palette?.dominantSwatch?.rgb!!
-                val r = android.graphics.Color.red(rgb).times(0.22).toInt()
-                val g = android.graphics.Color.green(rgb).times(0.22).toInt()
-                val b = android.graphics.Color.blue(rgb).times(0.22).toInt()
+                val r = android.graphics.Color.red(rgb).times(multiplicationFactor).toInt()
+                val g = android.graphics.Color.green(rgb).times(multiplicationFactor).toInt()
+                val b = android.graphics.Color.blue(rgb).times(multiplicationFactor).toInt()
                 backgroundColor = Color(r, g, b)
                 color = Color(rgb)
             }
@@ -151,8 +153,9 @@ fun NowPlayingScreen(
                 )
             }
 
-            Crossfade(
+            AnimatedContent(
                 targetState = track.trackTitle,
+                transitionSpec = { fadeIn(tween(500)) with fadeOut(tween(500)) },
                 modifier = Modifier.constrainAs(trackNameComposable) {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
@@ -168,8 +171,9 @@ fun NowPlayingScreen(
                 )
             }
 
-            Crossfade(
+            AnimatedContent(
                 targetState = track.artist,
+                transitionSpec = { fadeIn(tween(500)) with fadeOut(tween(500)) },
                 modifier = Modifier.constrainAs(artistComposable) {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
@@ -252,24 +256,21 @@ fun NowPlayingScreen(
                 controller?.seekToPreviousMediaItem()
             }
 
-            Crossfade(
-                targetState = uiState.isPlaying,
+            NowPlayingControlButton(
+                iconRes = if (uiState.isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
+                contentDesc = R.string.play_pause_button,
+                size = 40.dp,
+                backgroundColor = animatedColor,
                 modifier = Modifier.constrainAs(playPauseButton) {
                     start.linkTo(previousButton.end)
                     end.linkTo(nextButton.start)
                     top.linkTo(seekBar.bottom, 16.dp)
                 }
-            ) { isPlaying ->
-                NowPlayingControlButton(
-                    iconRes = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
-                    contentDesc = R.string.play_pause_button,
-                    size = 40.dp,
-                    backgroundColor = animatedColor
-                ) {
-                    if (uiState.isPlaying) controller?.pause()
-                    else controller?.play()
-                }
+            ) {
+                if (uiState.isPlaying) controller?.pause()
+                else controller?.play()
             }
+
 
             NowPlayingControlButton(
                 iconRes = R.drawable.ic_next,
@@ -355,11 +356,19 @@ fun NowPlayingControlButton(
             .background(backgroundColor, CircleShape)
             .padding(8.dp)
     ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            contentDescription = stringResource(id = contentDesc),
-            modifier = Modifier.size(size)
-        )
+        AnimatedContent(
+            targetState = iconRes,
+            transitionSpec = {
+                slideInVertically(tween()) { fullHeight -> -fullHeight * 2 } with
+                        slideOutVertically(tween()) { fullHeight -> fullHeight * 2 }
+            },
+        ) { res ->
+            Icon(
+                painter = painterResource(id = res),
+                contentDescription = stringResource(id = contentDesc),
+                modifier = Modifier.size(size)
+            )
+        }
     }
 }
 

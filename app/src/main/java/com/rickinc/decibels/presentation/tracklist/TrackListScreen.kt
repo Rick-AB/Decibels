@@ -50,7 +50,6 @@ import com.rickinc.decibels.presentation.ui.components.accomponistpermision.find
 import com.rickinc.decibels.presentation.ui.components.isPermissionPermanentlyDenied
 import com.rickinc.decibels.presentation.ui.components.requireSharedPreferencesEntryPoint
 import com.rickinc.decibels.presentation.ui.components.setShouldShowRationaleStatus
-import com.rickinc.decibels.presentation.ui.theme.LightBlack
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.ui.theme.Typography
 import com.rickinc.decibels.presentation.util.formatTrackDuration
