@@ -1,18 +1,16 @@
 package com.rickinc.decibels.domain.model
 
-import android.net.Uri
-import com.rickinc.decibels.domain.serializer.UriAsStringSerializer
-import kotlinx.serialization.Serializable
+import androidx.room.Embedded
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-@Serializable
+@Entity
 data class NowPlaying(
-    val trackId: Long,
-    val trackTitle: String,
-    val trackLength: Int,
-    val artist: String,
-    val albumId: Long,
-
-    @Serializable(with = UriAsStringSerializer::class)
-    val contentUri: Uri?,
-    val mimeType: String?
+    @PrimaryKey(autoGenerate = false)
+    val id: Int,
+    @Embedded
+    val track: Track,
+    val isPlaying: Boolean,
+    val repeatMode: Int,
+    val shuffleActive: Boolean
 )

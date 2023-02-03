@@ -1,6 +1,7 @@
 package com.rickinc.decibels.di
 
 import android.content.Context
+import com.rickinc.decibels.data.local.database.DecibelsDatabase
 import com.rickinc.decibels.data.repository.AudioRepositoryImpl
 import com.rickinc.decibels.domain.repository.AudioRepository
 import dagger.Module
@@ -16,7 +17,8 @@ class RepositoryModule {
     @Provides
     fun provideAudioRepository(
         @ApplicationContext context: Context,
+        decibelsDatabase: DecibelsDatabase
     ): AudioRepository {
-        return AudioRepositoryImpl(context)
+        return AudioRepositoryImpl(context, decibelsDatabase)
     }
 }

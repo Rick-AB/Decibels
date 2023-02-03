@@ -4,6 +4,7 @@ plugins {
     id 'dagger.hilt.android.plugin'
     id 'kotlin-kapt'
     id 'org.jetbrains.kotlin.plugin.serialization'
+    id "kotlin-parcelize"
 }
 
 android {
@@ -102,6 +103,9 @@ dependencies {
 
     // kotlin serialization
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1'
+
+    // gson
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
     kaptAndroidTest 'com.google.dagger:hilt-android-compiler:2.44'
     testImplementation 'junit:junit:4.13.2'

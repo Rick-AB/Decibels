@@ -7,6 +7,8 @@ import android.os.PowerManager
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.preference.PreferenceManager
+import androidx.room.Room
+import com.rickinc.decibels.data.local.database.DecibelsDatabase
 import com.rickinc.decibels.presentation.util.hasPermission
 import dagger.Module
 import dagger.Provides
@@ -37,6 +39,14 @@ object AppModule {
     @Provides
     fun provideSharedPreferences(@ApplicationContext appContext: Context): SharedPreferences {
         return PreferenceManager.getDefaultSharedPreferences(appContext)
+    }
+
+    @Singleton
+    @Provides
+    fun provideDatabase(@ApplicationContext appContext: Context): DecibelsDatabase {
+        return Room.databaseBuilder(appContext, DecibelsDatabase::class.java, "decibels.db")
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @EntryPoint

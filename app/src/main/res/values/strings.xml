@@ -28,4 +28,5 @@
     <string name="play_next">Play Next</string>
     <string name="set_as_ringtone">Set As Ringtone</string>
     <string name="song_s_will_be_played_next">1 song will be played next</string>
+    <string name="long_dash">__</string>
 </resources>

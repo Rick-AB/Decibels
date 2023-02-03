@@ -10,16 +10,25 @@ import android.provider.MediaStore
 import android.util.Size
 import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
+import com.rickinc.decibels.data.local.database.DecibelsDatabase
+import com.rickinc.decibels.domain.model.NowPlaying
 import com.rickinc.decibels.domain.model.Result
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.domain.util.TrackConverter.Companion.MP3
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
 import java.io.IOException
+
 
 class AudioRepositoryImpl(
     private val context: Context,
+    decibelsDatabase: DecibelsDatabase
 ) : AudioRepository {
+    private val dao = decibelsDatabase.dao
+
     @RequiresApi(Build.VERSION_CODES.Q)
     override suspend fun getAudioFiles(): Result<List<Track>> {
         return withContext(Dispatchers.IO) {
@@ -77,7 +86,8 @@ class AudioRepositoryImpl(
                                 artist = artist,
                                 albumId = albumId,
                                 contentUri = contentUri,
-                                mimeType = mimeType
+                                mimeType = mimeType,
+                                hasThumbnail = false
                             )
                         )
                     }
@@ -88,12 +98,23 @@ class AudioRepositoryImpl(
         }
     }
 
+    override suspend fun updateNowPlaying(nowPlaying: NowPlaying) {
+        dao.updateNowPlaying(nowPlaying)
+    }
+
+    override fun getNowPlayingFlow(): Flow<NowPlaying?> = dao.getNowPlaying()
+
     @RequiresApi(Build.VERSION_CODES.Q)
     private suspend fun getTracksWithThumbnail(tracks: List<Track>): List<Track> {
         val result: List<Track>
         coroutineScope {
             result = tracks.map {
-                async { it.copy(thumbnail = getThumbnailAfterQ(it.contentUri!!)) }
+                async {
+                    val thumbnailResult = getThumbnailAfterQ(it.contentUri!!)
+                    val thumbnail = thumbnailResult.first
+                    val hasOriginalBitmap = thumbnailResult.second
+                    it.copy(thumbnail = thumbnail, hasThumbnail = hasOriginalBitmap)
+                }
             }.awaitAll()
         }
 
@@ -105,11 +126,22 @@ class AudioRepositoryImpl(
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun getThumbnailAfterQ(contentUri: Uri): Bitmap? {
+    private fun getThumbnailAfterQ(contentUri: Uri): Pair<Bitmap, Boolean> {
         return try {
-            context.contentResolver.loadThumbnail(contentUri, Size(300, 300), null)
+            val bitmap = context.contentResolver.loadThumbnail(contentUri, Size(300, 300), null)
+            Pair(bitmap, true)
         } catch (e: IOException) {
-            null
+            val drawable = ContextCompat.getDrawable(
+                context,
+                com.rickinc.decibels.R.drawable.ic_baseline_audio_file_24,
+            )
+
+            val bitmap = drawable!!.toBitmap(
+                width = 300,
+                height = 300,
+                Bitmap.Config.ARGB_8888
+            )
+            Pair(bitmap, false)
         }
     }
 }
