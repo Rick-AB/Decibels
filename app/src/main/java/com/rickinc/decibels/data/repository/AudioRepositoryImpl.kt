@@ -1,7 +1,9 @@
 package com.rickinc.decibels.data.repository
 
+import android.app.Activity
 import android.content.ContentUris
 import android.content.Context
+import android.content.IntentSender
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -9,6 +11,10 @@ import android.os.Build
 import android.provider.MediaStore
 import android.util.Size
 import android.webkit.MimeTypeMap
+import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
@@ -103,6 +109,36 @@ class AudioRepositoryImpl(
     }
 
     override fun getNowPlayingFlow(): Flow<NowPlaying?> = dao.getNowPlaying()
+
+    override fun deleteTrack(context: Context, track: Track) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) deleteTrackAfterVersionQ(context, track)
+        else deleteTrackBeforeVersionQ(context, track)
+    }
+
+    private fun deleteTrackBeforeVersionQ(context: Context, track: Track) {
+        if (track.contentUri == null) return
+
+        context.contentResolver.delete(
+            track.contentUri,
+            "${MediaStore.Audio.Media._ID} = ?",
+            arrayOf(track.trackId.toString())
+        )
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun deleteTrackAfterVersionQ(context: Context, track: Track) {
+        val pendingIntent =
+            MediaStore.createDeleteRequest(context.contentResolver, listOf(track.contentUri))
+        val intentSenderRequest = IntentSenderRequest.Builder(pendingIntent).build()
+        if (context is ComponentActivity) {
+            val launcher =
+                context.registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+                    if (result.resultCode == Activity.RESULT_OK) {
+
+                    }
+                }
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private suspend fun getTracksWithThumbnail(tracks: List<Track>): List<Track> {

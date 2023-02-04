@@ -1,5 +1,7 @@
 package com.rickinc.decibels.presentation.tracklist
 
+import android.content.Context
+import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rickinc.decibels.domain.model.Track
@@ -42,8 +44,9 @@ class TrackListViewModel @Inject constructor(
         }
     }
 
-    fun setNowPlaying(selectedTrack: Track) {
-        _nowPlayingTrack.update { selectedTrack }
-    }
+    fun setNowPlaying(selectedTrack: Track) = _nowPlayingTrack.update { selectedTrack }
+
+    fun deleteTrack(context: Context, track: Track) = audioRepo.deleteTrack(context, track)
+
 
 }
