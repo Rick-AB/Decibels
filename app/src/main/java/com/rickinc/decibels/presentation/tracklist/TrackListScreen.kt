@@ -358,43 +358,6 @@ fun TrackItemMenu(
         )
     }
 }
-
-private fun checkVersionAndDelete(
-    context: Context,
-    track: Track,
-    actionShowDeleteDialog: () -> Unit,
-    launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>
-) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-        delegateDeleteToActivity(context, track, launcher)
-    else actionShowDeleteDialog()
-}
-
-@RequiresApi(Build.VERSION_CODES.R)
-private fun delegateDeleteToActivity(
-    context: Context,
-    track: Track,
-    launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>
-) {
-    val pendingIntent =
-        MediaStore.createDeleteRequest(context.contentResolver, listOf(track.contentUri))
-    val intentSenderRequest = IntentSenderRequest.Builder(pendingIntent).build()
-
-    launcher.launch(intentSenderRequest)
-}
-
-@Composable
-private fun getDeleteLauncher(): ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult> {
-    val context = LocalContext.current
-    return rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-    ) { result ->
-        if (result.resultCode != Activity.RESULT_OK) {
-            context.showLongToast(R.string.delete_failed_prompt)
-        }
-    }
-}
-
 @Composable
 fun TrackItemMenuItem(
     @StringRes menuTextRes: Int,
@@ -619,4 +582,40 @@ private fun playNext(
 private fun getRequiredPermission(): String {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
     else Manifest.permission.READ_EXTERNAL_STORAGE
+}
+
+private fun checkVersionAndDelete(
+    context: Context,
+    track: Track,
+    actionShowDeleteDialog: () -> Unit,
+    launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>
+) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+        delegateDeleteToActivity(context, track, launcher)
+    else actionShowDeleteDialog()
+}
+
+@RequiresApi(Build.VERSION_CODES.R)
+private fun delegateDeleteToActivity(
+    context: Context,
+    track: Track,
+    launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>
+) {
+    val pendingIntent =
+        MediaStore.createDeleteRequest(context.contentResolver, listOf(track.contentUri))
+    val intentSenderRequest = IntentSenderRequest.Builder(pendingIntent).build()
+
+    launcher.launch(intentSenderRequest)
+}
+
+@Composable
+private fun getDeleteLauncher(): ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult> {
+    val context = LocalContext.current
+    return rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+    ) { result ->
+        if (result.resultCode != Activity.RESULT_OK) {
+            context.showLongToast(R.string.delete_failed_prompt)
+        }
+    }
 }

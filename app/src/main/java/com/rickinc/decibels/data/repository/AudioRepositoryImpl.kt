@@ -111,11 +111,6 @@ class AudioRepositoryImpl(
     override fun getNowPlayingFlow(): Flow<NowPlaying?> = dao.getNowPlaying()
 
     override fun deleteTrack(context: Context, track: Track) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) deleteTrackAfterVersionQ(context, track)
-        else deleteTrackBeforeVersionQ(context, track)
-    }
-
-    private fun deleteTrackBeforeVersionQ(context: Context, track: Track) {
         if (track.contentUri == null) return
 
         context.contentResolver.delete(
@@ -123,21 +118,6 @@ class AudioRepositoryImpl(
             "${MediaStore.Audio.Media._ID} = ?",
             arrayOf(track.trackId.toString())
         )
-    }
-
-    @RequiresApi(Build.VERSION_CODES.R)
-    private fun deleteTrackAfterVersionQ(context: Context, track: Track) {
-        val pendingIntent =
-            MediaStore.createDeleteRequest(context.contentResolver, listOf(track.contentUri))
-        val intentSenderRequest = IntentSenderRequest.Builder(pendingIntent).build()
-        if (context is ComponentActivity) {
-            val launcher =
-                context.registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
-                    if (result.resultCode == Activity.RESULT_OK) {
-
-                    }
-                }
-        }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)

@@ -39,6 +39,7 @@ fun DeleteDialog(
                     color = Color.Black
                 )
 
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = message,
                     style = MaterialTheme.typography.bodyMedium,
