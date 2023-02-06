@@ -4,6 +4,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -11,6 +12,7 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.rickinc.decibels.presentation.nowplaying.NowPlayingScreen
 import com.rickinc.decibels.presentation.tracklist.TrackListScreen
 
@@ -27,7 +29,8 @@ fun MainActivityLayout() {
 
 @Composable
 fun ScreenContent(navController: NavHostController) {
-
+    val primary = MaterialTheme.colorScheme.primary
+    val systemController = rememberSystemUiController()
     AnimatedNavHost(
         navController = navController,
         startDestination = Screen.FullScreen.TrackListScreen.route(),
@@ -51,6 +54,7 @@ fun ScreenContent(navController: NavHostController) {
             arguments = Screen.FullScreen.NowPlayingScreen.getArguments()
         ) {
             NowPlayingScreen {
+                systemController.setStatusBarColor(primary)
                 navController.popBackStack()
             }
         }
