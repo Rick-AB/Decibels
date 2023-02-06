@@ -1,12 +1,18 @@
 package com.rickinc.decibels.presentation.tracklist
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.os.Build
+import android.provider.MediaStore
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
+import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -33,6 +39,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -45,11 +52,8 @@ import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.presentation.nowplaying.NowPlayingState
 import com.rickinc.decibels.presentation.nowplaying.NowPlayingViewModel
-import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
+import com.rickinc.decibels.presentation.ui.components.*
 import com.rickinc.decibels.presentation.ui.components.accomponistpermision.findActivity
-import com.rickinc.decibels.presentation.ui.components.isPermissionPermanentlyDenied
-import com.rickinc.decibels.presentation.ui.components.requireSharedPreferencesEntryPoint
-import com.rickinc.decibels.presentation.ui.components.setShouldShowRationaleStatus
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.ui.theme.Typography
 import com.rickinc.decibels.presentation.util.formatTrackDuration
@@ -135,7 +139,8 @@ fun TrackListBody(
                 tracks = trackListScreenState.tracks,
                 tracksAsMediaItems = trackListScreenState.tracksAsMediaItems,
                 nowPlayingState = nowPlayingState,
-                onTrackItemClick = onTrackItemClick
+                actionDeleteTrack = viewModel::deleteTrack,
+                onTrackItemClick = onTrackItemClick,
             )
             is TrackListState.Error -> InfoText(R.string.error_loading_audio_files)
             else -> {}
@@ -154,6 +159,7 @@ fun TrackList(
     tracks: List<Track>,
     tracksAsMediaItems: List<MediaItem>,
     nowPlayingState: NowPlayingState?,
+    actionDeleteTrack: (Context, Track) -> Unit,
     onTrackItemClick: (Track) -> Unit
 ) {
     if (tracks.isEmpty()) InfoText(stringResource = R.string.empty_track_list)
@@ -161,29 +167,47 @@ fun TrackList(
         val trackContentDescription = stringResource(id = R.string.track_list)
         val mediaController = LocalController.current
         val context = LocalContext.current
+        val launcher = getDeleteLauncher()
+        var showDeleteDialog by remember { mutableStateOf(false) }
+        var trackToDelete: Track? by remember { mutableStateOf(null) }
 
         Box(modifier = Modifier.fillMaxSize()) {
-            LazyColumn(modifier = Modifier
-                .fillMaxSize()
-                .semantics {
-                    contentDescription = trackContentDescription
-                }
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .semantics {
+                        contentDescription = trackContentDescription
+                    }
             ) {
                 itemsIndexed(
                     items = tracks,
                     key = { _, track -> track.trackId }
                 ) { index, track ->
-
                     val trackAsMediaItem = tracksAsMediaItems[index]
+
+                    val actionTrackClick = {
+                        playTrack(mediaController, trackAsMediaItem)
+                        addPlaylist(mediaController, index, tracksAsMediaItems)
+                        onTrackItemClick(track)
+                    }
+
                     TrackItem(
                         context = context,
                         track = track,
                         trackAsMediaItem = trackAsMediaItem,
-                        mediaController = mediaController
+                        mediaController = mediaController,
+                        modifier = Modifier.animateItemPlacement(),
+                        onClick = actionTrackClick
                     ) {
-                        playTrack(mediaController, trackAsMediaItem)
-                        addPlaylist(mediaController, index, tracksAsMediaItems)
-                        onTrackItemClick(track)
+                        checkVersionAndDelete(
+                            context = context,
+                            track = track,
+                            launcher = launcher,
+                            actionShowDeleteDialog = {
+                                showDeleteDialog = true; trackToDelete = track
+                            }
+                        )
                     }
                 }
             }
@@ -191,6 +215,20 @@ fun TrackList(
             if (nowPlayingState is NowPlayingState.TrackLoaded) {
                 NowPlayingPreview(nowPlayingState, Modifier.align(Alignment.BottomCenter)) {
                     onTrackItemClick(nowPlayingState.track)
+                }
+            }
+
+            if (showDeleteDialog && trackToDelete != null) {
+                val dismissDialog = { showDeleteDialog = false; trackToDelete = null }
+                DeleteDialog(
+                    message = stringResource(
+                        id = R.string.delete_track,
+                        trackToDelete!!.trackTitle
+                    ),
+                    dismissDialog = dismissDialog
+                ) {
+                    dismissDialog()
+                    actionDeleteTrack(context, trackToDelete!!)
                 }
             }
         }
@@ -203,16 +241,18 @@ fun TrackItem(
     track: Track,
     trackAsMediaItem: MediaItem,
     mediaController: MediaController?,
-    onClick: () -> Unit
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp),
+            .padding(start = 16.dp, end = 16.dp),
     ) {
         Column(modifier = Modifier.weight(0.7f)) {
             Text(
@@ -252,8 +292,10 @@ fun TrackItem(
                 TrackItemMenu(
                     expanded = isMenuExpanded,
                     dismissMenu = { isMenuExpanded = false },
-                    modifier = Modifier.align(Alignment.TopEnd)
-                ) { playNext(context, mediaController, trackAsMediaItem) }
+                    modifier = Modifier.align(Alignment.TopEnd),
+                    actionPlayNext = { playNext(context, mediaController, trackAsMediaItem) },
+                    onDeleteClick = onDeleteClick
+                )
             }
         }
     }
@@ -264,7 +306,8 @@ fun TrackItemMenu(
     expanded: Boolean,
     dismissMenu: () -> Unit,
     modifier: Modifier = Modifier,
-    actionPlayNext: () -> Unit
+    actionPlayNext: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
 
     DropdownMenu(
@@ -299,7 +342,7 @@ fun TrackItemMenu(
         TrackItemMenuItem(
             menuTextRes = R.string.delete,
             onDismiss = dismissMenu,
-            onClick = {},
+            onClick = onDeleteClick,
         )
 
         TrackItemMenuItem(
@@ -315,7 +358,6 @@ fun TrackItemMenu(
         )
     }
 }
-
 @Composable
 fun TrackItemMenuItem(
     @StringRes menuTextRes: Int,
@@ -499,10 +541,10 @@ fun PermissionRequiredBody(
     }
 }
 
-@Preview
+@Preview(showBackground = true, device = Devices.PIXEL_4, showSystemUi = true)
 @Composable
-fun PermissionRequiredPrev() {
-    PermissionRequiredBody(isPermanentlyDenied = true) {
+fun DeleteDialogPrev() {
+    DeleteDialog(message = stringResource(id = R.string.delete_track), {}) {
 
     }
 }
@@ -540,4 +582,40 @@ private fun playNext(
 private fun getRequiredPermission(): String {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
     else Manifest.permission.READ_EXTERNAL_STORAGE
+}
+
+private fun checkVersionAndDelete(
+    context: Context,
+    track: Track,
+    actionShowDeleteDialog: () -> Unit,
+    launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>
+) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+        delegateDeleteToActivity(context, track, launcher)
+    else actionShowDeleteDialog()
+}
+
+@RequiresApi(Build.VERSION_CODES.R)
+private fun delegateDeleteToActivity(
+    context: Context,
+    track: Track,
+    launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>
+) {
+    val pendingIntent =
+        MediaStore.createDeleteRequest(context.contentResolver, listOf(track.contentUri))
+    val intentSenderRequest = IntentSenderRequest.Builder(pendingIntent).build()
+
+    launcher.launch(intentSenderRequest)
+}
+
+@Composable
+private fun getDeleteLauncher(): ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult> {
+    val context = LocalContext.current
+    return rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+    ) { result ->
+        if (result.resultCode != Activity.RESULT_OK) {
+            context.showLongToast(R.string.delete_failed_prompt)
+        }
+    }
 }

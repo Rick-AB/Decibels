@@ -1,10 +1,15 @@
 package com.rickinc.decibels.presentation.tracklist
 
+import android.app.Application
+import android.content.Context
+import android.database.ContentObserver
+import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.domain.util.TrackConverter
+import com.rickinc.decibels.presentation.util.registerObserver
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,6 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TrackListViewModel @Inject constructor(
+    private val application: Application,
     private val audioRepo: AudioRepository,
     private val trackConverter: TrackConverter
 ) : ViewModel() {
@@ -25,6 +31,14 @@ class TrackListViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     private val tracks = mutableListOf<Track>()
+    private var contentObserver: ContentObserver
+
+    init {
+        contentObserver =
+            application.contentResolver.registerObserver(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI) {
+                getAudioFiles()
+            }
+    }
 
     fun getAudioFiles() {
         viewModelScope.launch {
@@ -42,8 +56,12 @@ class TrackListViewModel @Inject constructor(
         }
     }
 
-    fun setNowPlaying(selectedTrack: Track) {
-        _nowPlayingTrack.update { selectedTrack }
-    }
+    fun setNowPlaying(selectedTrack: Track) = _nowPlayingTrack.update { selectedTrack }
 
+    fun deleteTrack(context: Context, track: Track) = audioRepo.deleteTrack(context, track)
+
+    override fun onCleared() {
+        super.onCleared()
+        application.contentResolver.unregisterContentObserver(contentObserver)
+    }
 }

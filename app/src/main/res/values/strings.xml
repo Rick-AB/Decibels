@@ -29,4 +29,7 @@
     <string name="set_as_ringtone">Set As Ringtone</string>
     <string name="song_s_will_be_played_next">1 song will be played next</string>
     <string name="long_dash">__</string>
+    <string name="delete_track">Are you sure you want to permanently delete \'%s\' from your device?</string>
+    <string name="confirm_delete">Confirm Delete</string>
+    <string name="delete_failed_prompt">Sorry, there seems to be a problem deleting the file</string>
 </resources>

@@ -1,9 +1,12 @@
 package com.rickinc.decibels.presentation.util
 
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.ContentObserver
 import android.net.Uri
+import android.os.Handler
 import android.provider.Settings
 import android.widget.Toast
 import androidx.annotation.StringRes
@@ -33,4 +36,17 @@ fun Context.showShortToast(@StringRes stringRes: Int) {
 
 fun Context.showLongToast(@StringRes stringRes: Int) {
     Toast.makeText(this, getString(stringRes), Toast.LENGTH_LONG).show()
+}
+
+fun ContentResolver.registerObserver(
+    uri: Uri,
+    observer: (selfChange: Boolean) -> Unit
+): ContentObserver {
+    val contentObserver = object : ContentObserver(Handler()) {
+        override fun onChange(selfChange: Boolean) {
+            observer(selfChange)
+        }
+    }
+    registerContentObserver(uri, true, contentObserver)
+    return contentObserver
 }

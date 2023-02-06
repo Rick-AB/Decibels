@@ -104,6 +104,16 @@ class AudioRepositoryImpl(
 
     override fun getNowPlayingFlow(): Flow<NowPlaying?> = dao.getNowPlaying()
 
+    override fun deleteTrack(context: Context, track: Track) {
+        if (track.contentUri == null) return
+
+        context.contentResolver.delete(
+            track.contentUri,
+            "${MediaStore.Audio.Media._ID} = ?",
+            arrayOf(track.trackId.toString())
+        )
+    }
+
     @RequiresApi(Build.VERSION_CODES.Q)
     private suspend fun getTracksWithThumbnail(tracks: List<Track>): List<Track> {
         val result: List<Track>

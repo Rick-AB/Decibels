@@ -1,5 +1,7 @@
 package com.rickinc.decibels.presentation.nowplaying
 
+import android.annotation.SuppressLint
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.DrawableRes
@@ -25,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -37,6 +40,8 @@ import androidx.constraintlayout.compose.ChainStyle
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
@@ -66,7 +71,7 @@ fun NowPlayingScreen(goBack: () -> Unit) {
     }
 
 }
-
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun NowPlayingScreen(
     uiState: NowPlayingState.TrackLoaded,
@@ -79,6 +84,8 @@ fun NowPlayingScreen(
     val hasThumbnail = track.hasThumbnail
     val trackThumbnail = track.thumbnail!!
     val controller = LocalController.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val window = (LocalContext.current as ComponentActivity).window
 
     var backgroundColor by remember { mutableStateOf(primaryBackgroundColor) }
     val animatedBackgroundColor by animateColorAsState(targetValue = backgroundColor)
@@ -103,6 +110,20 @@ fun NowPlayingScreen(
         }
 
         systemUiController.setSystemBarsColor(backgroundColor)
+    }
+
+    DisposableEffect(key1 = lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
     }
 
     val showTrackInfo = remember(track) {
