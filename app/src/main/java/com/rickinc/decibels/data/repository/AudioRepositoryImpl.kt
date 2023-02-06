@@ -1,9 +1,7 @@
 package com.rickinc.decibels.data.repository
 
-import android.app.Activity
 import android.content.ContentUris
 import android.content.Context
-import android.content.IntentSender
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -11,10 +9,6 @@ import android.os.Build
 import android.provider.MediaStore
 import android.util.Size
 import android.webkit.MimeTypeMap
-import androidx.activity.ComponentActivity
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
