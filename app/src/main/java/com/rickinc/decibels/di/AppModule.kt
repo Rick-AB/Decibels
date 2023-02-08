@@ -9,6 +9,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.preference.PreferenceManager
 import androidx.room.Room
 import com.rickinc.decibels.data.local.database.DecibelsDatabase
+import com.rickinc.decibels.data.local.device.DeviceDataSource
 import com.rickinc.decibels.presentation.util.hasPermission
 import dagger.Module
 import dagger.Provides
@@ -47,6 +48,12 @@ object AppModule {
         return Room.databaseBuilder(appContext, DecibelsDatabase::class.java, "decibels.db")
             .fallbackToDestructiveMigration()
             .build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideDeviceDataSource(@ApplicationContext appContext: Context): DeviceDataSource {
+        return DeviceDataSource(appContext)
     }
 
     @EntryPoint

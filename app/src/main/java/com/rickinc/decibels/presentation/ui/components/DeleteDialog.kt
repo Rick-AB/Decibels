@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.rickinc.decibels.R
+import com.rickinc.decibels.presentation.ui.theme.secondaryVariant
 
 @Composable
 fun DeleteDialog(
@@ -28,6 +29,7 @@ fun DeleteDialog(
         properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
     ) {
         Card(
+            backgroundColor = secondaryVariant,
             modifier = Modifier
                 .width(300.dp)
                 .clip(RoundedCornerShape(4.dp))
@@ -36,14 +38,14 @@ fun DeleteDialog(
                 Text(
                     text = stringResource(R.string.confirm_delete),
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = message,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -51,6 +53,7 @@ fun DeleteDialog(
                     Text(
                         text = stringResource(id = R.string.cancel),
                         style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
                             .clickable { dismissDialog() }
                             .padding(4.dp)
@@ -61,6 +64,7 @@ fun DeleteDialog(
                     Text(
                         text = stringResource(id = R.string.delete),
                         style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
                             .clickable { actionPositiveButtonClick() }
                             .padding(4.dp)

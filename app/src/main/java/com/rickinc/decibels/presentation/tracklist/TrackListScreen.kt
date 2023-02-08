@@ -153,7 +153,6 @@ fun TrackList(
         val mediaController = LocalController.current
         val context = LocalContext.current
         val launcher = getDeleteLauncher()
-        var showDeleteDialog by remember { mutableStateOf(false) }
         var trackToDelete: Track? by remember { mutableStateOf(null) }
 
         Box(modifier = Modifier.fillMaxSize()) {
@@ -189,9 +188,7 @@ fun TrackList(
                             context = context,
                             track = track,
                             launcher = launcher,
-                            actionShowDeleteDialog = {
-                                showDeleteDialog = true; trackToDelete = track
-                            }
+                            actionShowDeleteDialog = { trackToDelete = track }
                         )
                     }
                 }
@@ -203,8 +200,8 @@ fun TrackList(
                 }
             }
 
-            if (showDeleteDialog && trackToDelete != null) {
-                val dismissDialog = { showDeleteDialog = false; trackToDelete = null }
+            if (trackToDelete != null) {
+                val dismissDialog = { trackToDelete = null }
                 DeleteDialog(
                     message = stringResource(
                         id = R.string.delete_track,
@@ -212,8 +209,8 @@ fun TrackList(
                     ),
                     dismissDialog = dismissDialog
                 ) {
-                    dismissDialog()
                     actionDeleteTrack(context, trackToDelete!!)
+                    dismissDialog()
                 }
             }
         }
