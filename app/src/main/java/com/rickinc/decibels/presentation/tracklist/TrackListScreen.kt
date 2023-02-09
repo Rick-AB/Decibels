@@ -144,7 +144,7 @@ fun TrackList(
     tracks: List<Track>,
     tracksAsMediaItems: List<MediaItem>,
     nowPlayingState: NowPlayingState?,
-    actionDeleteTrack: (Context, Track) -> Unit,
+    actionDeleteTrack: (Context, Track) -> Pair<Track, IntentSenderRequest>?,
     onTrackItemClick: (Track) -> Unit
 ) {
     if (tracks.isEmpty()) InfoText(stringResource = R.string.empty_track_list)
@@ -152,8 +152,10 @@ fun TrackList(
         val trackContentDescription = stringResource(id = R.string.track_list)
         val mediaController = LocalController.current
         val context = LocalContext.current
-        val launcher = getDeleteLauncher()
         var trackToDelete: Track? by remember { mutableStateOf(null) }
+        var trackAttemptedToDelete: Track? by remember { mutableStateOf(null) }
+        val launcher = getDeleteLauncher(trackAttemptedToDelete, actionDeleteTrack)
+
 
         Box(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
@@ -209,7 +211,11 @@ fun TrackList(
                     ),
                     dismissDialog = dismissDialog
                 ) {
-                    actionDeleteTrack(context, trackToDelete!!)
+                    val resultPair = actionDeleteTrack(context, trackToDelete!!)
+                    if (resultPair != null) {
+                        trackAttemptedToDelete = resultPair.first
+                        launcher.launch(resultPair.second)
+                    }
                     dismissDialog()
                 }
             }
@@ -277,13 +283,18 @@ private fun delegateDeleteToActivity(
 }
 
 @Composable
-private fun getDeleteLauncher(): ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult> {
+private fun getDeleteLauncher(
+    track: Track?,
+    actionDeleteTrack: (Context, Track) -> Pair<Track, IntentSenderRequest>?
+): ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult> {
     val context = LocalContext.current
     return rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult(),
     ) { result ->
         if (result.resultCode != Activity.RESULT_OK) {
             context.showLongToast(R.string.delete_failed_prompt)
+        } else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+            actionDeleteTrack(context, track!!)
         }
     }
 }

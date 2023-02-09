@@ -6,19 +6,18 @@ import android.content.Context
 import android.database.ContentObserver
 import android.os.Build
 import android.provider.MediaStore
+import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.domain.util.TrackConverter
-import com.rickinc.decibels.presentation.ui.components.accomponistpermision.findActivity
 import com.rickinc.decibels.presentation.util.registerObserver
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,8 +35,6 @@ class TrackListViewModel @Inject constructor(
 
     private val tracks = mutableListOf<Track>()
     private var contentObserver: ContentObserver
-
-    private val DELETE_PERMISSION_REQUEST = 0
 
     init {
         contentObserver =
@@ -64,7 +61,7 @@ class TrackListViewModel @Inject constructor(
 
     fun setNowPlaying(selectedTrack: Track) = _nowPlayingTrack.update { selectedTrack }
 
-    fun deleteTrack(context: Context, track: Track) {
+    fun deleteTrack(context: Context, track: Track): Pair<Track, IntentSenderRequest>? {
         try {
             audioRepo.deleteTrack(context, track)
         } catch (securityException: SecurityException) {
@@ -74,18 +71,13 @@ class TrackListViewModel @Inject constructor(
                         ?: throw securityException
 
                 val intentSender = recoverableSecurityException.userAction.actionIntent.intentSender
-                context.findActivity().startIntentSenderForResult(
-                    intentSender,
-                    DELETE_PERMISSION_REQUEST,
-                    null,
-                    0,
-                    0,
-                    0
-                )
+                val intentSenderRequest = IntentSenderRequest.Builder(intentSender).build()
+                return Pair(track, intentSenderRequest)
             } else {
                 throw securityException
             }
         }
+        return null
     }
 
     override fun onCleared() {
