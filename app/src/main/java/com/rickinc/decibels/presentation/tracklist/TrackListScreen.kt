@@ -125,6 +125,7 @@ fun TrackListBody(
                 tracksAsMediaItems = trackListScreenState.tracksAsMediaItems,
                 nowPlayingState = nowPlayingState,
                 actionDeleteTrack = viewModel::deleteTrack,
+                actionShareTrack = viewModel::shareFile,
                 onTrackItemClick = onTrackItemClick,
             )
             is TrackListState.Error -> InfoText(R.string.error_loading_audio_files)
@@ -145,6 +146,7 @@ fun TrackList(
     tracksAsMediaItems: List<MediaItem>,
     nowPlayingState: NowPlayingState?,
     actionDeleteTrack: (Context, Track) -> Pair<Track, IntentSenderRequest>?,
+    actionShareTrack: (Context, Track) -> Unit,
     onTrackItemClick: (Track) -> Unit
 ) {
     if (tracks.isEmpty()) InfoText(stringResource = R.string.empty_track_list)
@@ -178,14 +180,7 @@ fun TrackList(
                         onTrackItemClick(track)
                     }
 
-                    TrackItem(
-                        context = context,
-                        track = track,
-                        trackAsMediaItem = trackAsMediaItem,
-                        mediaController = mediaController,
-                        modifier = Modifier.animateItemPlacement(),
-                        onClick = actionTrackClick
-                    ) {
+                    val onDeleteClick = {
                         checkVersionAndDelete(
                             context = context,
                             track = track,
@@ -193,6 +188,17 @@ fun TrackList(
                             actionShowDeleteDialog = { trackToDelete = track }
                         )
                     }
+
+                    TrackItem(
+                        context = context,
+                        track = track,
+                        trackAsMediaItem = trackAsMediaItem,
+                        mediaController = mediaController,
+                        modifier = Modifier.animateItemPlacement(),
+                        onClick = actionTrackClick,
+                        actionShareTrack = { actionShareTrack(context, track) },
+                        onDeleteClick = onDeleteClick
+                    )
                 }
             }
 

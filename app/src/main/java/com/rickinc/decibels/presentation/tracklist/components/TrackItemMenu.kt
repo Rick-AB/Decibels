@@ -19,7 +19,8 @@ fun TrackItemMenu(
     dismissMenu: () -> Unit,
     modifier: Modifier = Modifier,
     actionPlayNext: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    actionShareTrack: () -> Unit
 ) {
 
     DropdownMenu(
@@ -48,7 +49,7 @@ fun TrackItemMenu(
         TrackItemMenuItem(
             menuTextRes = R.string.share,
             onDismiss = dismissMenu,
-            onClick = {},
+            onClick = actionShareTrack,
         )
 
         TrackItemMenuItem(

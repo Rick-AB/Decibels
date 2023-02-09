@@ -29,7 +29,8 @@ fun TrackItem(
     mediaController: MediaController?,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    actionShareTrack: () -> Unit
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
 
@@ -80,7 +81,8 @@ fun TrackItem(
                     dismissMenu = { isMenuExpanded = false },
                     modifier = Modifier.align(Alignment.TopEnd),
                     actionPlayNext = { playNext(context, mediaController, trackAsMediaItem) },
-                    onDeleteClick = onDeleteClick
+                    onDeleteClick = onDeleteClick,
+                    actionShareTrack = actionShareTrack
                 )
             }
         }
