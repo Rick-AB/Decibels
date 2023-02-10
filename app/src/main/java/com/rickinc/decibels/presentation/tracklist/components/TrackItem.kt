@@ -1,6 +1,5 @@
 package com.rickinc.decibels.presentation.tracklist.components
 
-import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
@@ -17,20 +16,16 @@ import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaController
 import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Track
-import com.rickinc.decibels.presentation.tracklist.playNext
 import com.rickinc.decibels.presentation.ui.theme.Typography
 import com.rickinc.decibels.presentation.util.formatTrackDuration
 
 @Composable
 fun TrackItem(
-    context: Context,
     track: Track,
     trackAsMediaItem: MediaItem,
     mediaController: MediaController?,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-    onDeleteClick: () -> Unit,
-    actionShareTrack: () -> Unit
+    onClick: () -> Unit
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
 
@@ -80,9 +75,10 @@ fun TrackItem(
                     expanded = isMenuExpanded,
                     dismissMenu = { isMenuExpanded = false },
                     modifier = Modifier.align(Alignment.TopEnd),
-                    actionPlayNext = { playNext(context, mediaController, trackAsMediaItem) },
-                    onDeleteClick = onDeleteClick,
-                    actionShareTrack = actionShareTrack
+                    track = track,
+                    trackAsMediaItem = trackAsMediaItem,
+                    mediaController = mediaController,
+                    actionTrackClick = onClick
                 )
             }
         }

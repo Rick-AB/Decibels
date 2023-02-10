@@ -1,21 +1,14 @@
 package com.rickinc.decibels.presentation.tracklist
 
 import android.Manifest
-import android.app.Activity
-import android.content.Context
 import android.os.Build
-import android.provider.MediaStore
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.*
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,12 +32,14 @@ import com.rickinc.decibels.presentation.tracklist.components.InfoText
 import com.rickinc.decibels.presentation.tracklist.components.NowPlayingPreview
 import com.rickinc.decibels.presentation.tracklist.components.PermissionRequiredBody
 import com.rickinc.decibels.presentation.tracklist.components.TrackItem
-import com.rickinc.decibels.presentation.ui.components.*
+import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.ui.components.accomponistpermision.findActivity
+import com.rickinc.decibels.presentation.ui.components.isPermissionPermanentlyDenied
+import com.rickinc.decibels.presentation.ui.components.requireSharedPreferencesEntryPoint
+import com.rickinc.decibels.presentation.ui.components.setShouldShowRationaleStatus
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.util.hasPermission
 import com.rickinc.decibels.presentation.util.openAppSettings
-import com.rickinc.decibels.presentation.util.showLongToast
 
 @Composable
 fun TrackListScreen(onTrackItemClick: (Track) -> Unit) {
@@ -124,8 +119,6 @@ fun TrackListBody(
                 tracks = trackListScreenState.tracks,
                 tracksAsMediaItems = trackListScreenState.tracksAsMediaItems,
                 nowPlayingState = nowPlayingState,
-                actionDeleteTrack = viewModel::deleteTrack,
-                actionShareTrack = viewModel::shareFile,
                 onTrackItemClick = onTrackItemClick,
             )
             is TrackListState.Error -> InfoText(R.string.error_loading_audio_files)
@@ -145,19 +138,12 @@ fun TrackList(
     tracks: List<Track>,
     tracksAsMediaItems: List<MediaItem>,
     nowPlayingState: NowPlayingState?,
-    actionDeleteTrack: (Context, Track) -> Pair<Track, IntentSenderRequest>?,
-    actionShareTrack: (Context, Track) -> Unit,
     onTrackItemClick: (Track) -> Unit
 ) {
     if (tracks.isEmpty()) InfoText(stringResource = R.string.empty_track_list)
     else {
         val trackContentDescription = stringResource(id = R.string.track_list)
         val mediaController = LocalController.current
-        val context = LocalContext.current
-        var trackToDelete: Track? by remember { mutableStateOf(null) }
-        var trackAttemptedToDelete: Track? by remember { mutableStateOf(null) }
-        val launcher = getDeleteLauncher(trackAttemptedToDelete, actionDeleteTrack)
-
 
         Box(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
@@ -180,24 +166,12 @@ fun TrackList(
                         onTrackItemClick(track)
                     }
 
-                    val onDeleteClick = {
-                        checkVersionAndDelete(
-                            context = context,
-                            track = track,
-                            launcher = launcher,
-                            actionShowDeleteDialog = { trackToDelete = track }
-                        )
-                    }
-
                     TrackItem(
-                        context = context,
                         track = track,
                         trackAsMediaItem = trackAsMediaItem,
                         mediaController = mediaController,
                         modifier = Modifier.animateItemPlacement(),
-                        onClick = actionTrackClick,
-                        actionShareTrack = { actionShareTrack(context, track) },
-                        onDeleteClick = onDeleteClick
+                        onClick = actionTrackClick
                     )
                 }
             }
@@ -205,24 +179,6 @@ fun TrackList(
             if (nowPlayingState is NowPlayingState.TrackLoaded) {
                 NowPlayingPreview(nowPlayingState, Modifier.align(Alignment.BottomCenter)) {
                     onTrackItemClick(nowPlayingState.track)
-                }
-            }
-
-            if (trackToDelete != null) {
-                val dismissDialog = { trackToDelete = null }
-                DeleteDialog(
-                    message = stringResource(
-                        id = R.string.delete_track,
-                        trackToDelete!!.trackTitle
-                    ),
-                    dismissDialog = dismissDialog
-                ) {
-                    val resultPair = actionDeleteTrack(context, trackToDelete!!)
-                    if (resultPair != null) {
-                        trackAttemptedToDelete = resultPair.first
-                        launcher.launch(resultPair.second)
-                    }
-                    dismissDialog()
                 }
             }
         }
@@ -249,58 +205,7 @@ private fun addPlaylist(
     mediaController?.addMediaItems(tracksAfterCurrent)
 }
 
-fun playNext(
-    context: Context,
-    mediaController: MediaController?,
-    mediaItem: MediaItem
-) {
-    val index = mediaController?.nextMediaItemIndex ?: 0
-    mediaController?.addMediaItem(index, mediaItem)
-    context.showLongToast(R.string.song_s_will_be_played_next)
-}
-
 private fun getRequiredPermission(): String {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
     else Manifest.permission.READ_EXTERNAL_STORAGE
-}
-
-private fun checkVersionAndDelete(
-    context: Context,
-    track: Track,
-    actionShowDeleteDialog: () -> Unit,
-    launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>
-) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-        delegateDeleteToActivity(context, track, launcher)
-    else actionShowDeleteDialog()
-}
-
-@RequiresApi(Build.VERSION_CODES.R)
-private fun delegateDeleteToActivity(
-    context: Context,
-    track: Track,
-    launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>
-) {
-    val pendingIntent =
-        MediaStore.createDeleteRequest(context.contentResolver, listOf(track.contentUri))
-    val intentSenderRequest = IntentSenderRequest.Builder(pendingIntent).build()
-
-    launcher.launch(intentSenderRequest)
-}
-
-@Composable
-private fun getDeleteLauncher(
-    track: Track?,
-    actionDeleteTrack: (Context, Track) -> Pair<Track, IntentSenderRequest>?
-): ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult> {
-    val context = LocalContext.current
-    return rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-    ) { result ->
-        if (result.resultCode != Activity.RESULT_OK) {
-            context.showLongToast(R.string.delete_failed_prompt)
-        } else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-            actionDeleteTrack(context, track!!)
-        }
-    }
 }
