@@ -1,7 +1,6 @@
 package com.rickinc.decibels.presentation.tracklist
 
 import android.app.Application
-import android.content.Context
 import android.database.ContentObserver
 import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
@@ -57,8 +56,6 @@ class TrackListViewModel @Inject constructor(
     }
 
     fun setNowPlaying(selectedTrack: Track) = _nowPlayingTrack.update { selectedTrack }
-
-    fun deleteTrack(context: Context, track: Track) = audioRepo.deleteTrack(context, track)
 
     override fun onCleared() {
         super.onCleared()

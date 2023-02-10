@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.*
@@ -70,7 +71,12 @@ fun NowPlayingScreen(goBack: () -> Unit) {
         else -> {}
     }
 
+    BackHandler {
+        goBack()
+    }
+
 }
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun NowPlayingScreen(
