@@ -1,5 +1,5 @@
 <resources>
-    <string name="appName">Decibels</string>
+    <string name="app_name">Decibels</string>
     <string name="myMusic">My Music</string>
     <string name="track_list">Track list</string>
     <string name="error_loading_audio_files">There was an error loading audio files</string>
@@ -32,4 +32,6 @@
     <string name="delete_track">Are you sure you want to permanently delete \'%s\' from your device?</string>
     <string name="confirm_delete">Confirm Delete</string>
     <string name="delete_failed_prompt">Sorry, there seems to be a problem deleting the file</string>
+    <string name="ringtone_set">Ringtone set</string>
+    <string name="error_setting_ringtone">Unable to set audio file as ringtone</string>
 </resources>

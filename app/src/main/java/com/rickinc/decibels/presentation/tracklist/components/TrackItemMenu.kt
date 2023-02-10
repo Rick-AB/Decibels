@@ -114,7 +114,7 @@ fun TrackItemMenu(
         TrackItemMenuItem(
             menuTextRes = R.string.set_as_ringtone,
             onDismiss = dismissMenu,
-            onClick = {},
+            onClick = { viewModel.setAsRingtone(context, track) },
         )
     }
 }

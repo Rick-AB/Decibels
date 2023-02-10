@@ -130,7 +130,7 @@ fun TrackListBody(
 
 @Composable
 fun TrackListTopAppBar() {
-    DefaultTopAppBar(title = stringResource(id = R.string.appName))
+    DefaultTopAppBar(title = stringResource(id = R.string.app_name))
 }
 
 @Composable
