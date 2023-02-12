@@ -6,15 +6,15 @@ import android.media.RingtoneManager
 import android.os.Build
 import android.provider.MediaStore
 import android.webkit.MimeTypeMap
-import android.widget.Toast
 import com.rickinc.decibels.R
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
+import javax.inject.Inject
 
 
-class RingtoneUtil {
+class RingtoneUtil @Inject constructor() {
 
     fun setAsRingtone(context: Context, file: File): Boolean {
         val values = ContentValues()

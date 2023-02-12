@@ -34,4 +34,5 @@
     <string name="delete_failed_prompt">Sorry, there seems to be a problem deleting the file</string>
     <string name="ringtone_set">Ringtone set</string>
     <string name="error_setting_ringtone">Unable to set audio file as ringtone</string>
+    <string name="write_setting_permission_prompt">Decibels need permission to write system setting to change your ringtone.</string>
 </resources>
