@@ -2,8 +2,12 @@ package com.rickinc.decibels.presentation.tracklist.components
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.provider.Settings
+import android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
@@ -114,9 +118,22 @@ fun TrackItemMenu(
         TrackItemMenuItem(
             menuTextRes = R.string.set_as_ringtone,
             onDismiss = dismissMenu,
-            onClick = {},
+            onClick = {
+                if (hasWriteSettingPermission(context)) viewModel.setAsRingtone(context, track)
+                else {
+                    val intent = Intent(ACTION_MANAGE_WRITE_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                    context.startActivity(intent)
+                    context.showLongToast(R.string.write_setting_permission_prompt)
+                }
+            },
         )
     }
+}
+
+private fun hasWriteSettingPermission(context: Context): Boolean {
+    return Settings.System.canWrite(context)
 }
 
 @Composable

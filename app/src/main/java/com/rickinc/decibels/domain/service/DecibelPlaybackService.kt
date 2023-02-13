@@ -112,17 +112,17 @@ class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
 
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     private fun initNotificationManager() {
-        val channelId = resources.getString(R.string.appName) + "Music channel"
+        val channelId = resources.getString(R.string.app_name) + "Music channel"
         val notificationID = 1998
         notificationManager = PlayerNotificationManager.Builder(this, notificationID, channelId)
             .setChannelImportance(IMPORTANCE_HIGH)
             .setSmallIconResourceId(R.drawable.ic_baseline_audio_file_24)
-            .setChannelDescriptionResourceId(R.string.appName)
+            .setChannelDescriptionResourceId(R.string.app_name)
             .setNextActionIconResourceId(R.drawable.ic_next)
             .setPreviousActionIconResourceId(R.drawable.ic_previous)
             .setPauseActionIconResourceId(R.drawable.ic_pause)
             .setPlayActionIconResourceId(R.drawable.ic_play)
-            .setChannelNameResourceId(R.string.appName)
+            .setChannelNameResourceId(R.string.app_name)
             .build()
 
         notificationManager.setPlayer(player)
