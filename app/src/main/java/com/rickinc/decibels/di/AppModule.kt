@@ -8,8 +8,8 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.preference.PreferenceManager
 import androidx.room.Room
-import com.rickinc.decibels.data.local.database.DecibelsDatabase
-import com.rickinc.decibels.data.local.device.DeviceDataSource
+import com.rickinc.decibels.data.datasource.local.database.DecibelsDatabase
+import com.rickinc.decibels.data.datasource.local.device.DeviceDataSource
 import com.rickinc.decibels.presentation.util.hasPermission
 import dagger.Module
 import dagger.Provides

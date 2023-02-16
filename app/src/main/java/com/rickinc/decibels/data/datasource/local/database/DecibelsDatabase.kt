@@ -1,10 +1,10 @@
-package com.rickinc.decibels.data.local.database
+package com.rickinc.decibels.data.datasource.local.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.rickinc.decibels.data.local.database.typeconverter.BitmapTypeConverter
-import com.rickinc.decibels.data.local.database.typeconverter.UriTypeConverter
+import com.rickinc.decibels.data.datasource.local.database.typeconverter.BitmapTypeConverter
+import com.rickinc.decibels.data.datasource.local.database.typeconverter.UriTypeConverter
 import com.rickinc.decibels.domain.model.NowPlaying
 import com.rickinc.decibels.domain.model.Track
 

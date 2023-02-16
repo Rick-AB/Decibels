@@ -17,11 +17,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,6 +56,7 @@ import androidx.media3.session.MediaController
 import androidx.palette.graphics.Palette
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.rickinc.decibels.R
+import com.rickinc.decibels.presentation.nowplaying.components.NowPlayingBottomSheetContent
 import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.ui.theme.LightBlack
 import com.rickinc.decibels.presentation.ui.theme.LocalController
@@ -133,14 +141,17 @@ fun NowPlayingScreen(
     }
 
     val showTrackInfo = remember(track) {
-//        track.trackId.toString() == controller?.currentMediaItem?.mediaId
         true
     }
 
-    Scaffold(
+    BottomSheetScaffold(
+        scaffoldState = rememberBottomSheetScaffoldState(),
+        sheetPeekHeight = 10.dp,
         topBar = { NowPlayingTopAppBar(goBack) },
         modifier = Modifier.fillMaxSize(),
-        containerColor = animatedBackgroundColor
+        backgroundColor = animatedBackgroundColor,
+        sheetContent = { NowPlayingBottomSheetContent() },
+        sheetBackgroundColor = animatedColor
     ) { _ ->
         ConstraintLayout(
             modifier = Modifier
@@ -345,6 +356,7 @@ fun NowPlayingScreen(
 
     }
 }
+
 
 @Composable
 fun NowPlayingControlButton(

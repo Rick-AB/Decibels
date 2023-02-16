@@ -107,6 +107,9 @@ dependencies {
     // gson
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
+    // jsoup
+    implementation 'org.jsoup:jsoup:1.14.3'
+
     kaptAndroidTest 'com.google.dagger:hilt-android-compiler:2.44'
     testImplementation 'junit:junit:4.13.2'
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_test_version"

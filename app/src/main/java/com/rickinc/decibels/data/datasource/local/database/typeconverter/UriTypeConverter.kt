@@ -1,4 +1,4 @@
-package com.rickinc.decibels.data.local.database.typeconverter
+package com.rickinc.decibels.data.datasource.local.database.typeconverter
 
 import android.net.Uri
 import androidx.room.TypeConverter

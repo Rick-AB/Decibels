@@ -1,7 +1,7 @@
 package com.rickinc.decibels.di
 
-import com.rickinc.decibels.data.local.database.DecibelsDatabase
-import com.rickinc.decibels.data.local.device.DeviceDataSource
+import com.rickinc.decibels.data.datasource.local.database.DecibelsDatabase
+import com.rickinc.decibels.data.datasource.local.device.DeviceDataSource
 import com.rickinc.decibels.data.repository.AudioRepositoryImpl
 import com.rickinc.decibels.domain.repository.AudioRepository
 import dagger.Module
