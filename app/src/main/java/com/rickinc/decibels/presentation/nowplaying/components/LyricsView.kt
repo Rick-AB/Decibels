@@ -74,6 +74,7 @@ fun LyricsView(
     state: LyricsViewState,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
+    contentColor: Color,
     fontSize: TextUnit = 32.sp,
     fontWeight: FontWeight = FontWeight.Bold,
     lineHeight: TextUnit = 1.2.em,

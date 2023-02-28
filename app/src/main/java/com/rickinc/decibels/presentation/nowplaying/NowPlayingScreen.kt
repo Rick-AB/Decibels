@@ -71,7 +71,11 @@ fun NowPlayingScreen(goBack: () -> Unit) {
     val nowPlayingViewModel: NowPlayingViewModel = hiltViewModel(context as ComponentActivity)
 
     when (val uiState = nowPlayingViewModel.uiState.collectAsStateWithLifecycle().value) {
-        is NowPlayingState.TrackLoaded -> NowPlayingScreen(uiState = uiState, goBack = goBack)
+        is NowPlayingState.TrackLoaded -> NowPlayingScreen(
+            uiState = uiState,
+            nowPlayingViewModel = nowPlayingViewModel,
+            goBack = goBack
+        )
         is NowPlayingState.ErrorLoadingTrack -> {
             Toast.makeText(context, uiState.error.errorMessage, Toast.LENGTH_LONG).show()
             goBack()
@@ -89,6 +93,7 @@ fun NowPlayingScreen(goBack: () -> Unit) {
 @Composable
 fun NowPlayingScreen(
     uiState: NowPlayingState.TrackLoaded,
+    nowPlayingViewModel: NowPlayingViewModel,
     goBack: () -> Unit
 ) {
     val systemUiController = rememberSystemUiController()
@@ -105,7 +110,7 @@ fun NowPlayingScreen(
     val animatedBackgroundColor by animateColorAsState(targetValue = backgroundColor)
 
     var color by remember { mutableStateOf(secondaryBackgroundColor) }
-    val animatedColor by animateColorAsState(targetValue = color)
+    val animatedOnBackgroundColor by animateColorAsState(targetValue = color)
 
     LaunchedEffect(key1 = trackThumbnail) {
         if (hasThumbnail) {
@@ -123,7 +128,8 @@ fun NowPlayingScreen(
             color = secondaryBackgroundColor
         }
 
-        systemUiController.setSystemBarsColor(backgroundColor)
+        systemUiController.setStatusBarColor(backgroundColor)
+        systemUiController.setNavigationBarColor(color)
     }
 
     DisposableEffect(key1 = lifecycleOwner) {
@@ -146,12 +152,19 @@ fun NowPlayingScreen(
 
     BottomSheetScaffold(
         scaffoldState = rememberBottomSheetScaffoldState(),
-        sheetPeekHeight = 10.dp,
+        sheetPeekHeight = 24.dp,
         topBar = { NowPlayingTopAppBar(goBack) },
         modifier = Modifier.fillMaxSize(),
         backgroundColor = animatedBackgroundColor,
-        sheetContent = { NowPlayingBottomSheetContent() },
-        sheetBackgroundColor = animatedColor
+        sheetContent = {
+            NowPlayingBottomSheetContent(
+                uiState,
+                nowPlayingViewModel,
+                animatedBackgroundColor
+            )
+        },
+        sheetBackgroundColor = animatedOnBackgroundColor,
+        sheetShape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
     ) { _ ->
         ConstraintLayout(
             modifier = Modifier
@@ -298,7 +311,7 @@ fun NowPlayingScreen(
                 iconRes = if (uiState.isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
                 contentDesc = R.string.play_pause_button,
                 size = 40.dp,
-                backgroundColor = animatedColor,
+                backgroundColor = animatedOnBackgroundColor,
                 modifier = Modifier.constrainAs(playPauseButton) {
                     start.linkTo(previousButton.end)
                     end.linkTo(nextButton.start)

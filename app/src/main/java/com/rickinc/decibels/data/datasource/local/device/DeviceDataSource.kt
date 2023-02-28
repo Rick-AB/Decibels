@@ -12,18 +12,14 @@ import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
-import com.rickinc.decibels.data.datasource.network.LyricsScraper
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.util.TrackConverter
 import kotlinx.coroutines.*
-import timber.log.Timber
 import java.io.IOException
 
 class DeviceDataSource(
     private val context: Context,
 ) {
-    val lyricsScraper = LyricsScraper()
-
     @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun getDeviceAudioFiles(): List<Track> {
         return withContext(Dispatchers.IO) {
@@ -71,11 +67,6 @@ class DeviceDataSource(
                     )
                     val mimeType = MimeTypeMap.getSingleton()
                         .getExtensionFromMimeType(context.contentResolver.getType(contentUri))
-                    try {
-                        lyricsScraper.getLyrics(title)
-                    } catch (e: Exception) {
-                        Timber.e(e)
-                    }
                     if (mimeType == TrackConverter.MP3) {
                         list.add(
                             Track(

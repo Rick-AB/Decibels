@@ -7,8 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.media3.session.MediaController
 import com.rickinc.decibels.domain.model.Lyrics
 import com.rickinc.decibels.domain.parser.LrcLyricsParser
+import com.rickinc.decibels.presentation.ui.theme.LocalController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -20,21 +22,24 @@ import kotlin.system.measureTimeMillis
 fun rememberLyricsViewState(lrcContent: String): LyricsViewState {
     val scope = rememberCoroutineScope()
     val parser = remember { LrcLyricsParser() }
+    val mediaController = LocalController.current
     return remember(scope, parser, lrcContent) {
         val lyrics = parser.parse(lrcContent)
-        LyricsViewState(lyrics, scope)
+        LyricsViewState(lyrics, mediaController, scope)
     }
 }
 
 @Composable
 fun rememberLyricsViewState(lyrics: Lyrics?): LyricsViewState {
     val scope = rememberCoroutineScope()
-    return remember(scope, lyrics) { LyricsViewState(lyrics, scope) }
+    val mediaController = LocalController.current
+    return remember(scope, lyrics) { LyricsViewState(lyrics, mediaController, scope) }
 }
 
 @Stable
 class LyricsViewState(
     lyrics: Lyrics?,
+    private val mediaController: MediaController?,
     private val scope: CoroutineScope,
     private val tickMillis: Long = 50L,
 ) {
@@ -61,7 +66,7 @@ class LyricsViewState(
         }
     }
 
-    fun play() {
+    private fun play() {
         if (lyrics == null) return
 
         val lines = lyrics.lines
@@ -71,6 +76,7 @@ class LyricsViewState(
             return
         }
 
+        mediaController?.play()
         playbackJob?.cancel()
         playbackJob = scope.launch {
             var currLineIdx = findLineIndexAt(position)
@@ -161,6 +167,7 @@ class LyricsViewState(
     fun pause() {
         isPlaying = false
         playbackJob?.cancel()
+        mediaController?.pause()
     }
 
     fun seekToLine(index: Int) {
@@ -170,7 +177,7 @@ class LyricsViewState(
         seekTo(position)
     }
 
-    fun seekTo(position: Long) {
+    private fun seekTo(position: Long) {
         val playAfterSeeking = isPlaying
         if (isPlaying) {
             playbackJob?.cancel()
