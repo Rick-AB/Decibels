@@ -66,7 +66,12 @@ class LyricsViewState(
         }
     }
 
-    private fun play() {
+    fun play(position: Long) {
+        this.position = position
+        play()
+    }
+
+    fun play() {
         if (lyrics == null) return
 
         val lines = lyrics.lines
@@ -76,9 +81,10 @@ class LyricsViewState(
             return
         }
 
-        mediaController?.play()
         playbackJob?.cancel()
         playbackJob = scope.launch {
+            mediaController?.play()
+
             var currLineIdx = findLineIndexAt(position)
             currentLineIndex = currLineIdx
 
@@ -177,11 +183,14 @@ class LyricsViewState(
         seekTo(position)
     }
 
-    private fun seekTo(position: Long) {
+    fun seekTo(position: Long) {
+        mediaController?.seekTo(position)
+
         val playAfterSeeking = isPlaying
         if (isPlaying) {
             playbackJob?.cancel()
         }
+
         this.position = position
         if (playAfterSeeking) {
             play()

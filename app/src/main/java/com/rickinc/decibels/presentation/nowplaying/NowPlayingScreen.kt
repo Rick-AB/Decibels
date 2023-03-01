@@ -152,7 +152,7 @@ fun NowPlayingScreen(
 
     BottomSheetScaffold(
         scaffoldState = rememberBottomSheetScaffoldState(),
-        sheetPeekHeight = 24.dp,
+        sheetPeekHeight = 48.dp,
         topBar = { NowPlayingTopAppBar(goBack) },
         modifier = Modifier.fillMaxSize(),
         backgroundColor = animatedBackgroundColor,

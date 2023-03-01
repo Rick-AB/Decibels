@@ -107,8 +107,16 @@ dependencies {
     // gson
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
+    // Moshi
+    implementation 'com.squareup.moshi:moshi-kotlin:1.13.0'
+    kapt 'com.squareup.moshi:moshi-kotlin-codegen:1.13.0'
+
     // jsoup
     implementation 'org.jsoup:jsoup:1.14.3'
+
+    //retrofit
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-moshi:2.9.0'
 
     kaptAndroidTest 'com.google.dagger:hilt-android-compiler:2.44'
     testImplementation 'junit:junit:4.13.2'

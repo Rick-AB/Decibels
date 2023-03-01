@@ -2,6 +2,7 @@ package com.rickinc.decibels.di
 
 import com.rickinc.decibels.data.datasource.local.database.DecibelsDatabase
 import com.rickinc.decibels.data.datasource.local.device.DeviceDataSource
+import com.rickinc.decibels.data.datasource.network.LyricsApiService
 import com.rickinc.decibels.data.datasource.network.LyricsScraper
 import com.rickinc.decibels.data.repository.AudioRepositoryImpl
 import com.rickinc.decibels.domain.repository.AudioRepository
@@ -17,9 +18,9 @@ class RepositoryModule {
     @Provides
     fun provideAudioRepository(
         deviceDataSource: DeviceDataSource,
-        lyricsScraper: LyricsScraper,
+        lyricsApiService: LyricsApiService,
         decibelsDatabase: DecibelsDatabase
     ): AudioRepository {
-        return AudioRepositoryImpl(deviceDataSource, lyricsScraper, decibelsDatabase)
+        return AudioRepositoryImpl(deviceDataSource, lyricsApiService, decibelsDatabase)
     }
 }

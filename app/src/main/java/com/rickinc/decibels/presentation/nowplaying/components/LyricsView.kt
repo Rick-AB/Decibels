@@ -77,6 +77,7 @@ fun LyricsView(
     contentColor: Color,
     fontSize: TextUnit = 32.sp,
     fontWeight: FontWeight = FontWeight.Bold,
+    fadingEdges: FadingEdges = FadingEdges.None,
     lineHeight: TextUnit = 1.2.em,
 ) {
     val scope = rememberCoroutineScope()
@@ -182,6 +183,7 @@ fun LyricsView(
 
     Box(
         modifier = modifier
+            .fadingEdges(edges = fadingEdges)
             .onSizeChanged { lyricsHeight = it.height },
     ) {
         Column(
