@@ -14,6 +14,7 @@ import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.domain.util.UploadStreamRequestBody
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import okhttp3.MultipartBody
 import retrofit2.HttpException
 
@@ -33,10 +34,12 @@ class AudioRepositoryImpl(
     }
 
     override suspend fun updateNowPlaying(nowPlaying: NowPlaying) {
-        dao.updateNowPlaying(nowPlaying)
+        withContext(Dispatchers.IO) {
+            dao.updateNowPlaying(nowPlaying)
+        }
     }
 
-    override fun getNowPlayingFlow(): Flow<NowPlaying?> = dao.getNowPlaying()
+    override fun getNowPlayingFlow(): Flow<NowPlaying?> = dao.getNowPlaying().distinctUntilChanged()
 
     override fun deleteTrack(context: Context, track: Track) {
         deviceDataSource.deleteAudioFileFromDevice(context, track)

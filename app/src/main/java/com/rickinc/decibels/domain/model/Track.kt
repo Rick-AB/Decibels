@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.google.gson.GsonBuilder
+import com.rickinc.decibels.domain.util.UriTypeAdapter
 
 @Entity
 data class Track(
@@ -31,5 +33,11 @@ data class Track(
             val tracks = getUniqueTrackList()
             return if (position > tracks.lastIndex) tracks[tracks.lastIndex] else tracks[position]
         }
+    }
+
+    override fun toString(): String {
+        val gson =
+            GsonBuilder().registerTypeHierarchyAdapter(Uri::class.java, UriTypeAdapter()).create()
+        return Uri.encode(gson.toJson(this))
     }
 }

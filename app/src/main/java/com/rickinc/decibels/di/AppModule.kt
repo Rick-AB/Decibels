@@ -67,9 +67,9 @@ object AppModule {
     @Singleton
     fun providesOkhttp(): OkHttpClient {
         return OkHttpClient.Builder()
-            .connectTimeout(30L, TimeUnit.SECONDS)
-            .readTimeout(30L, TimeUnit.SECONDS)
-            .writeTimeout(30L, TimeUnit.SECONDS)
+            .connectTimeout(Int.MAX_VALUE.toLong(), TimeUnit.MILLISECONDS)
+            .readTimeout(Int.MAX_VALUE.toLong(), TimeUnit.MILLISECONDS)
+            .writeTimeout(Int.MAX_VALUE.toLong(), TimeUnit.MILLISECONDS)
             .build()
     }
 

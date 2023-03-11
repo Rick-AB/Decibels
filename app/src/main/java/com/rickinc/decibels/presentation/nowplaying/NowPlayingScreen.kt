@@ -56,26 +56,30 @@ import androidx.media3.session.MediaController
 import androidx.palette.graphics.Palette
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.rickinc.decibels.R
+import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.presentation.nowplaying.components.NowPlayingBottomSheetContent
 import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
+import com.rickinc.decibels.presentation.ui.components.clickable
+import com.rickinc.decibels.presentation.ui.components.currentFraction
 import com.rickinc.decibels.presentation.ui.theme.LightBlack
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.ui.theme.Typography
-import com.rickinc.decibels.presentation.util.clickable
 import com.rickinc.decibels.presentation.util.formatTrackDuration
 
-
 @Composable
-fun NowPlayingScreen(goBack: () -> Unit) {
+fun NowPlayingScreen(selectedTrack: Track, goBack: () -> Unit) {
     val context = LocalContext.current
     val nowPlayingViewModel: NowPlayingViewModel = hiltViewModel(context as ComponentActivity)
 
     when (val uiState = nowPlayingViewModel.uiState.collectAsStateWithLifecycle().value) {
-        is NowPlayingState.TrackLoaded -> NowPlayingScreen(
-            uiState = uiState,
-            nowPlayingViewModel = nowPlayingViewModel,
-            goBack = goBack
-        )
+        is NowPlayingState.TrackLoaded -> {
+            NowPlayingScreen(
+                selectedTrack = selectedTrack,
+                uiState = uiState,
+                nowPlayingViewModel = nowPlayingViewModel,
+                goBack = goBack
+            )
+        }
         is NowPlayingState.ErrorLoadingTrack -> {
             Toast.makeText(context, uiState.error.errorMessage, Toast.LENGTH_LONG).show()
             goBack()
@@ -92,19 +96,31 @@ fun NowPlayingScreen(goBack: () -> Unit) {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun NowPlayingScreen(
+    selectedTrack: Track,
     uiState: NowPlayingState.TrackLoaded,
     nowPlayingViewModel: NowPlayingViewModel,
     goBack: () -> Unit
 ) {
-    val systemUiController = rememberSystemUiController()
+    val (track, isPlaying, repeatMode, isShuffleActive, progress, _) = uiState
+    var useUiState by remember { mutableStateOf(false) }
+
+    // initialize trackState with the selected track passed to the screen bcuz track from uiState can hold stale data initially
+    val trackState by remember(track.trackId) {
+        if (selectedTrack.trackId == track.trackId && !useUiState) useUiState = true
+
+        if (useUiState) mutableStateOf(track)
+        else mutableStateOf(selectedTrack)
+    }
+
     val primaryBackgroundColor = LightBlack
     val secondaryBackgroundColor = MaterialTheme.colorScheme.primary
-    val track = uiState.track
-    val hasThumbnail = track.hasThumbnail
-    val trackThumbnail = track.thumbnail!!
+    val hasThumbnail = trackState.hasThumbnail
+    val trackThumbnail = trackState.thumbnail!!
     val controller = LocalController.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val window = (LocalContext.current as ComponentActivity).window
+    val systemUiController = rememberSystemUiController()
+    val scaffoldState = rememberBottomSheetScaffoldState()
 
     var backgroundColor by remember { mutableStateOf(primaryBackgroundColor) }
     val animatedBackgroundColor by animateColorAsState(targetValue = backgroundColor)
@@ -127,7 +143,9 @@ fun NowPlayingScreen(
             backgroundColor = primaryBackgroundColor
             color = secondaryBackgroundColor
         }
+    }
 
+    LaunchedEffect(key1 = backgroundColor, key2 = color) {
         systemUiController.setStatusBarColor(backgroundColor)
         systemUiController.setNavigationBarColor(color)
     }
@@ -141,17 +159,13 @@ fun NowPlayingScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
 
         onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
-    val showTrackInfo = remember(track) {
-        true
-    }
-
     BottomSheetScaffold(
-        scaffoldState = rememberBottomSheetScaffoldState(),
+        scaffoldState = scaffoldState,
         sheetPeekHeight = 48.dp,
         topBar = { NowPlayingTopAppBar(goBack) },
         modifier = Modifier.fillMaxSize(),
@@ -160,9 +174,11 @@ fun NowPlayingScreen(
             NowPlayingBottomSheetContent(
                 uiState,
                 nowPlayingViewModel,
-                animatedBackgroundColor
-            )
+                animatedBackgroundColor,
+                scaffoldState.bottomSheetState.isCollapsed,
+            ) { scaffoldState.currentFraction }
         },
+        sheetElevation = 8.dp,
         sheetBackgroundColor = animatedOnBackgroundColor,
         sheetShape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
     ) { _ ->
@@ -177,35 +193,21 @@ fun NowPlayingScreen(
 
             val guideLine = createGuidelineFromTop(0.55f)
 
-            if (showTrackInfo) {
-                Image(
-                    bitmap = trackThumbnail.asImageBitmap(),
-                    contentDescription = stringResource(id = R.string.album_art),
-                    modifier = Modifier.constrainAs(albumArtComposable) {
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                        bottom.linkTo(guideLine)
-                        width = Dimension.fillToConstraints
-                        height = Dimension.ratio("1:1")
-                    }
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_baseline_audio_file_24),
-                    contentDescription = stringResource(id = R.string.album_art),
-                    modifier = Modifier
-                        .constrainAs(albumArtComposable) {
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                            bottom.linkTo(guideLine)
-                            width = Dimension.fillToConstraints
-                            height = Dimension.ratio("1:1")
-                        }
-                )
-            }
+            Image(
+                bitmap = trackThumbnail.asImageBitmap(),
+                contentDescription = stringResource(id = R.string.album_art),
+                modifier = Modifier.constrainAs(albumArtComposable) {
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(guideLine)
+                    width = Dimension.fillToConstraints
+                    height = Dimension.ratio("1:1")
+                }
+            )
+
 
             AnimatedContent(
-                targetState = track.trackTitle,
+                targetState = trackState.trackTitle,
                 transitionSpec = { fadeIn(tween(500)) with fadeOut(tween(500)) },
                 modifier = Modifier.constrainAs(trackNameComposable) {
                     start.linkTo(parent.start)
@@ -223,7 +225,7 @@ fun NowPlayingScreen(
             }
 
             AnimatedContent(
-                targetState = track.artist,
+                targetState = trackState.artist,
                 transitionSpec = { fadeIn(tween(500)) with fadeOut(tween(500)) },
                 modifier = Modifier.constrainAs(artistComposable) {
                     start.linkTo(parent.start)
@@ -241,13 +243,13 @@ fun NowPlayingScreen(
 
             val sliderContentDesc = stringResource(id = R.string.seek_bar)
             Slider(
-                value = uiState.progress.toFloat(),
+                value = progress.toFloat(),
                 onValueChange = { controller?.seekTo(it.toLong()) },
                 colors = SliderDefaults.colors(
                     thumbColor = MaterialTheme.colorScheme.onBackground,
                     activeTrackColor = MaterialTheme.colorScheme.onBackground
                 ),
-                valueRange = 0f..uiState.track.trackLength.toFloat(),
+                valueRange = 0f..track.trackLength.toFloat(),
                 modifier = Modifier
                     .constrainAs(seekBar) {
                         start.linkTo(parent.start)
@@ -257,9 +259,9 @@ fun NowPlayingScreen(
                     .semantics { contentDescription = sliderContentDesc }
             )
 
-            val currentDuration = formatTrackDuration(uiState.progress)
+            val currentDuration = formatTrackDuration(progress)
             Text(
-                text = if (showTrackInfo) currentDuration else "--",
+                text = currentDuration,
                 style = Typography.bodyMedium,
                 modifier = Modifier.constrainAs(currentDurationComposable) {
                     start.linkTo(seekBar.start)
@@ -267,9 +269,9 @@ fun NowPlayingScreen(
                 }
             )
 
-            val trackDuration = formatTrackDuration(uiState.track.trackLength.toLong())
+            val trackDuration = formatTrackDuration(track.trackLength.toLong())
             Text(
-                text = if (showTrackInfo) trackDuration else "--",
+                text = trackDuration,
                 style = Typography.bodyMedium,
                 modifier = Modifier.constrainAs(trackDurationComposable) {
                     end.linkTo(seekBar.end)
@@ -280,7 +282,7 @@ fun NowPlayingScreen(
             NowPlayingControlButton(
                 iconRes = R.drawable.ic_shuffle,
                 contentDesc = R.string.shuffle_button,
-                tint = if (uiState.isShuffleActive) MaterialTheme.colorScheme.primary else Color.White,
+                tint = if (isShuffleActive) MaterialTheme.colorScheme.primary else Color.White,
                 modifier = Modifier.constrainAs(shuffleButton) {
                     start.linkTo(seekBar.start)
                     end.linkTo(previousButton.start)
@@ -308,7 +310,7 @@ fun NowPlayingScreen(
             }
 
             NowPlayingControlButton(
-                iconRes = if (uiState.isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
+                iconRes = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
                 contentDesc = R.string.play_pause_button,
                 size = 40.dp,
                 backgroundColor = animatedOnBackgroundColor,
@@ -318,7 +320,7 @@ fun NowPlayingScreen(
                     top.linkTo(seekBar.bottom, 16.dp)
                 }
             ) {
-                if (uiState.isPlaying) controller?.pause()
+                if (isPlaying) controller?.pause()
                 else controller?.play()
             }
 
@@ -338,12 +340,12 @@ fun NowPlayingScreen(
                 controller?.seekToNextMediaItem()
             }
 
-            val isRepeatOn = uiState.repeatMode != Player.REPEAT_MODE_OFF
+            val isRepeatOn = repeatMode != Player.REPEAT_MODE_OFF
             RepeatIconButton(
                 iconRes = R.drawable.ic_repeat,
                 contentDesc = R.string.repeat_button,
                 tint = if (isRepeatOn) MaterialTheme.colorScheme.primary else Color.White,
-                repeatMode = uiState.repeatMode,
+                repeatMode = repeatMode,
                 modifier = Modifier.constrainAs(repeatButton) {
                     start.linkTo(nextButton.end)
                     end.linkTo(seekBar.end)
@@ -352,7 +354,7 @@ fun NowPlayingScreen(
                 }
             ) {
                 controller?.let {
-                    handleRepeatSelection(uiState, it)
+                    handleRepeatSelection(repeatMode, it)
                 }
             }
 
@@ -513,10 +515,10 @@ private fun OverFlowIcon(onClick: () -> Unit) {
 }
 
 private fun handleRepeatSelection(
-    uiState: NowPlayingState.TrackLoaded,
+    repeatMode: Int,
     mediaController: MediaController
 ) {
-    when (uiState.repeatMode) {
+    when (repeatMode) {
         Player.REPEAT_MODE_OFF -> mediaController.repeatMode = Player.REPEAT_MODE_ALL
         Player.REPEAT_MODE_ALL -> mediaController.repeatMode = Player.REPEAT_MODE_ONE
         Player.REPEAT_MODE_ONE -> mediaController.repeatMode = Player.REPEAT_MODE_OFF
