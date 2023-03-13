@@ -53,6 +53,7 @@ fun NowPlayingBottomSheetContent(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
+            .fillMaxHeight(0.9f)
             .fillMaxSize()
             .padding(8.dp)
     ) {

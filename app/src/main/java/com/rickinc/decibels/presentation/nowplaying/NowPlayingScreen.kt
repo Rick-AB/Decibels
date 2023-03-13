@@ -34,6 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -44,9 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ChainStyle
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
+import androidx.constraintlayout.compose.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -58,6 +58,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.presentation.nowplaying.components.NowPlayingBottomSheetContent
+import com.rickinc.decibels.presentation.nowplaying.components.motionScene
 import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.ui.components.clickable
 import com.rickinc.decibels.presentation.ui.components.currentFraction
@@ -128,6 +129,8 @@ fun NowPlayingScreen(
     var color by remember { mutableStateOf(secondaryBackgroundColor) }
     val animatedOnBackgroundColor by animateColorAsState(targetValue = color)
 
+    val showToolbar by remember { derivedStateOf { scaffoldState.currentFraction <= 0.9f } }
+
     LaunchedEffect(key1 = trackThumbnail) {
         if (hasThumbnail) {
             Palette.from(trackThumbnail).generate { palette ->
@@ -167,7 +170,7 @@ fun NowPlayingScreen(
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 48.dp,
-        topBar = { NowPlayingTopAppBar(goBack) },
+        topBar = { if (showToolbar) NowPlayingTopAppBar(onBackClick = goBack) { scaffoldState.currentFraction } },
         modifier = Modifier.fillMaxSize(),
         backgroundColor = animatedBackgroundColor,
         sheetContent = {
@@ -182,62 +185,44 @@ fun NowPlayingScreen(
         sheetBackgroundColor = animatedOnBackgroundColor,
         sheetShape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
     ) { _ ->
-        ConstraintLayout(
+        MotionLayout(
+            motionScene = motionScene(),
+            progress = scaffoldState.currentFraction,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 35.dp)
         ) {
-            val (albumArtComposable, trackNameComposable, artistComposable,
-                currentDurationComposable, trackDurationComposable, seekBar, previousButton,
-                nextButton, playPauseButton, shuffleButton, repeatButton) = createRefs()
-
-            val guideLine = createGuidelineFromTop(0.55f)
 
             Image(
                 bitmap = trackThumbnail.asImageBitmap(),
                 contentDescription = stringResource(id = R.string.album_art),
-                modifier = Modifier.constrainAs(albumArtComposable) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(guideLine)
-                    width = Dimension.fillToConstraints
-                    height = Dimension.ratio("1:1")
-                }
+                modifier = Modifier.layoutId(NowPlayingLayout.IMAGE)
             )
 
-
+            val titleProperties = customProperties(NowPlayingLayout.TITLE.name)
             AnimatedContent(
                 targetState = trackState.trackTitle,
                 transitionSpec = { fadeIn(tween(500)) with fadeOut(tween(500)) },
-                modifier = Modifier.constrainAs(trackNameComposable) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(guideLine, 16.dp)
-                }
-            )
-            { trackName ->
+                modifier = Modifier.layoutId(NowPlayingLayout.TITLE)
+            ) { trackName ->
                 Text(
                     text = trackName,
                     style = Typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center,
+                    textAlign = getTextAlignmentFromInt(titleProperties.int("textAlign")),
                 )
             }
 
+            val artistProperties = customProperties(NowPlayingLayout.ARTIST.name)
             AnimatedContent(
                 targetState = trackState.artist,
                 transitionSpec = { fadeIn(tween(500)) with fadeOut(tween(500)) },
-                modifier = Modifier.constrainAs(artistComposable) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(trackNameComposable.bottom, 8.dp)
-                }
-            )
-            { artist ->
+                modifier = Modifier.layoutId(NowPlayingLayout.ARTIST)
+            ) { artist ->
                 Text(
                     text = artist,
                     style = Typography.bodyMedium,
-                    textAlign = TextAlign.Center,
+                    textAlign = getTextAlignmentFromInt(artistProperties.int("textAlign")),
                 )
             }
 
@@ -251,11 +236,7 @@ fun NowPlayingScreen(
                 ),
                 valueRange = 0f..track.trackLength.toFloat(),
                 modifier = Modifier
-                    .constrainAs(seekBar) {
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                        top.linkTo(artistComposable.bottom, 16.dp)
-                    }
+                    .layoutId(NowPlayingLayout.SEEK_BAR)
                     .semantics { contentDescription = sliderContentDesc }
             )
 
@@ -263,32 +244,21 @@ fun NowPlayingScreen(
             Text(
                 text = currentDuration,
                 style = Typography.bodyMedium,
-                modifier = Modifier.constrainAs(currentDurationComposable) {
-                    start.linkTo(seekBar.start)
-                    top.linkTo(seekBar.bottom)
-                }
+                modifier = Modifier.layoutId(NowPlayingLayout.CURRENT_DURATION)
             )
 
             val trackDuration = formatTrackDuration(track.trackLength.toLong())
             Text(
                 text = trackDuration,
                 style = Typography.bodyMedium,
-                modifier = Modifier.constrainAs(trackDurationComposable) {
-                    end.linkTo(seekBar.end)
-                    top.linkTo(seekBar.bottom)
-                }
+                modifier = Modifier.layoutId(NowPlayingLayout.TRACK_DURATION)
             )
 
             NowPlayingControlButton(
                 iconRes = R.drawable.ic_shuffle,
                 contentDesc = R.string.shuffle_button,
                 tint = if (isShuffleActive) MaterialTheme.colorScheme.primary else Color.White,
-                modifier = Modifier.constrainAs(shuffleButton) {
-                    start.linkTo(seekBar.start)
-                    end.linkTo(previousButton.start)
-                    top.linkTo(playPauseButton.top)
-                    bottom.linkTo(playPauseButton.bottom)
-                }
+                modifier = Modifier.layoutId(NowPlayingLayout.SHUFFLE)
             ) {
                 controller?.shuffleModeEnabled = !controller?.shuffleModeEnabled!!
             }
@@ -299,12 +269,7 @@ fun NowPlayingScreen(
                 contentDesc = R.string.previous_track_button,
                 tint = Color.White,
                 size = controlSize,
-                modifier = Modifier.constrainAs(previousButton) {
-                    start.linkTo(shuffleButton.end)
-                    end.linkTo(playPauseButton.start)
-                    top.linkTo(playPauseButton.top)
-                    bottom.linkTo(playPauseButton.bottom)
-                }
+                modifier = Modifier.layoutId(NowPlayingLayout.PREVIOUS)
             ) {
                 controller?.seekToPreviousMediaItem()
             }
@@ -314,11 +279,7 @@ fun NowPlayingScreen(
                 contentDesc = R.string.play_pause_button,
                 size = 40.dp,
                 backgroundColor = animatedOnBackgroundColor,
-                modifier = Modifier.constrainAs(playPauseButton) {
-                    start.linkTo(previousButton.end)
-                    end.linkTo(nextButton.start)
-                    top.linkTo(seekBar.bottom, 16.dp)
-                }
+                modifier = Modifier.layoutId(NowPlayingLayout.PLAY_PAUSE)
             ) {
                 if (isPlaying) controller?.pause()
                 else controller?.play()
@@ -330,12 +291,7 @@ fun NowPlayingScreen(
                 contentDesc = R.string.next_track_button,
                 tint = Color.White,
                 size = controlSize,
-                modifier = Modifier.constrainAs(nextButton) {
-                    start.linkTo(playPauseButton.end)
-                    end.linkTo(repeatButton.start)
-                    top.linkTo(playPauseButton.top)
-                    bottom.linkTo(playPauseButton.bottom)
-                }
+                modifier = Modifier.layoutId(NowPlayingLayout.NEXT)
             ) {
                 controller?.seekToNextMediaItem()
             }
@@ -346,27 +302,12 @@ fun NowPlayingScreen(
                 contentDesc = R.string.repeat_button,
                 tint = if (isRepeatOn) MaterialTheme.colorScheme.primary else Color.White,
                 repeatMode = repeatMode,
-                modifier = Modifier.constrainAs(repeatButton) {
-                    start.linkTo(nextButton.end)
-                    end.linkTo(seekBar.end)
-                    top.linkTo(playPauseButton.top)
-                    bottom.linkTo(playPauseButton.bottom)
-                }
+                modifier = Modifier.layoutId(NowPlayingLayout.REPEAT)
             ) {
                 controller?.let {
                     handleRepeatSelection(repeatMode, it)
                 }
             }
-
-
-            createHorizontalChain(
-                shuffleButton,
-                previousButton,
-                playPauseButton,
-                nextButton,
-                repeatButton,
-                chainStyle = ChainStyle.SpreadInside
-            )
         }
 
     }
@@ -456,7 +397,9 @@ fun RepeatIconButton(
 
 @Composable
 private fun NowPlayingTopAppBar(
+    modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
+    bottomSheetOffset: () -> Float,
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
     val nowPlayingContentDesc = stringResource(id = R.string.top_app_bar)
@@ -473,7 +416,9 @@ private fun NowPlayingTopAppBar(
                 ) { isMenuExpanded = false }
             }
         },
-        modifier = Modifier.semantics { contentDescription = nowPlayingContentDesc }
+        modifier = modifier
+            .graphicsLayer { alpha = (1).minus(bottomSheetOffset()) }
+            .semantics { contentDescription = nowPlayingContentDesc }
     )
 }
 
@@ -522,5 +467,12 @@ private fun handleRepeatSelection(
         Player.REPEAT_MODE_OFF -> mediaController.repeatMode = Player.REPEAT_MODE_ALL
         Player.REPEAT_MODE_ALL -> mediaController.repeatMode = Player.REPEAT_MODE_ONE
         Player.REPEAT_MODE_ONE -> mediaController.repeatMode = Player.REPEAT_MODE_OFF
+    }
+}
+
+private fun getTextAlignmentFromInt(value: Int): TextAlign {
+    return when (value) {
+        0 -> TextAlign.Center
+        else -> TextAlign.Start
     }
 }
