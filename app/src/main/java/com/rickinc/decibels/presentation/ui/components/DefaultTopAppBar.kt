@@ -20,12 +20,14 @@ fun DefaultTopAppBar(
     navigationIcon: @Composable (() -> Unit)? = null,
     actions: @Composable (() -> Unit)? = null,
 ) {
-    Surface(tonalElevation = AppBarDefaults.TopAppBarElevation, color = Color.Transparent) {
-        Column(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(5.dp),
-        ) {
+    Surface(
+        tonalElevation = AppBarDefaults.TopAppBarElevation,
+        color = Color.Transparent,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(5.dp)
+    ) {
+        Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.height(50.dp)

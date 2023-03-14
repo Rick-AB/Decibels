@@ -2,11 +2,9 @@ package com.rickinc.decibels.presentation.nowplaying.components
 
 import android.annotation.SuppressLint
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstraintSetRef
-import androidx.constraintlayout.compose.Dimension
-import androidx.constraintlayout.compose.MotionScene
-import androidx.constraintlayout.compose.Visibility
-import com.rickinc.decibels.presentation.nowplaying.NowPlayingLayout
+import androidx.constraintlayout.compose.*
+import com.rickinc.decibels.presentation.nowplaying.*
+import com.rickinc.decibels.presentation.ui.theme.Typography
 
 @SuppressLint("Range")
 fun motionScene(): MotionScene {
@@ -14,8 +12,6 @@ fun motionScene(): MotionScene {
     var endSet: ConstraintSetRef
     val ms = MotionScene {
         val topAppBar = createRefFor(NowPlayingLayout.TOP_APP_BAR)
-        val backArrow = createRefFor(NowPlayingLayout.BACK_ARROW)
-        val overFlowMenu = createRefFor(NowPlayingLayout.OVER_FLOW_MENU)
         val albumArt = createRefFor(NowPlayingLayout.IMAGE)
         val trackTitle = createRefFor(NowPlayingLayout.TITLE)
         val artist = createRefFor(NowPlayingLayout.ARTIST)
@@ -28,6 +24,11 @@ fun motionScene(): MotionScene {
         val shuffleButton = createRefFor(NowPlayingLayout.SHUFFLE)
         val repeatButton = createRefFor(NowPlayingLayout.REPEAT)
 
+        val startTitleFontSize = Typography.titleMedium.fontSize
+        val endTitleFontSize = Typography.titleSmall.fontSize
+        val startArtistFontSize = Typography.bodyMedium.fontSize
+        val endArtistFontSize = Typography.bodySmall.fontSize
+
         startSet = constraintSet("start") {
             val guideLine = createGuidelineFromTop(0.55f)
 
@@ -36,17 +37,12 @@ fun motionScene(): MotionScene {
                 end.linkTo(parent.end)
                 top.linkTo(parent.top)
                 width = Dimension.fillToConstraints
-                alpha = 1.0f
                 visibility = Visibility.Visible
             }
 
-            constrain(backArrow) {
-                start.linkTo(topAppBar.start)
-            }
-
             constrain(albumArt) {
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
+                start.linkTo(parent.start, 35.dp)
+                end.linkTo(parent.end, 35.dp)
                 top.linkTo(topAppBar.bottom)
                 bottom.linkTo(guideLine)
                 width = Dimension.fillToConstraints
@@ -54,17 +50,19 @@ fun motionScene(): MotionScene {
             }
 
             constrain(trackTitle) {
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
+                start.linkTo(albumArt.start)
+                end.linkTo(albumArt.end)
                 top.linkTo(guideLine, 16.dp)
-                customInt("textAlign", 0)
+                customInt(textAlign, 0)
+                customInt(maxLines, 2)
+                customFontSize(fontSize, startTitleFontSize)
             }
 
             constrain(artist) {
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
+                start.linkTo(trackTitle.start)
+                end.linkTo(trackTitle.end)
                 top.linkTo(trackTitle.bottom, 8.dp)
-                customInt("textAlign", 0)
+                customFontSize(fontSize, startArtistFontSize)
             }
 
             constrain(currentDuration) {
@@ -95,6 +93,8 @@ fun motionScene(): MotionScene {
                 start.linkTo(previousButton.end)
                 end.linkTo(nextButton.start)
                 top.linkTo(seekBar.bottom, 16.dp)
+                // attribute to show play_pause button background color:: 0 == true
+                customInt(showBackground, 0)
             }
 
             constrain(shuffleButton) {
@@ -112,10 +112,20 @@ fun motionScene(): MotionScene {
             }
 
             constrain(seekBar) {
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
+                start.linkTo(albumArt.start)
+                end.linkTo(albumArt.end)
                 top.linkTo(artist.bottom, 16.dp)
+                width = Dimension.fillToConstraints
             }
+
+//            createHorizontalChain(
+//                shuffleButton,
+//                previousButton,
+//                playPauseButton,
+//                nextButton,
+//                repeatButton,
+//                chainStyle = ChainStyle.Packed
+//            )
         }
 
         endSet = constraintSet("end") {
@@ -123,48 +133,47 @@ fun motionScene(): MotionScene {
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
                 top.linkTo(parent.top)
-                alpha = 0.0f
+                alpha = 0F
                 visibility = Visibility.Gone
             }
 
             constrain(albumArt) {
-                start.linkTo(parent.start)
-                top.linkTo(parent.top)
+                start.linkTo(parent.start, 16.dp)
+                top.linkTo(parent.top, 16.dp)
                 width = Dimension.value(50.dp)
                 height = Dimension.value(50.dp)
             }
 
             constrain(trackTitle) {
-                linkTo(
-                    start = albumArt.end,
-                    end = playPauseButton.start,
-                    top = albumArt.top,
-                    bottom = albumArt.bottom,
-                    startMargin = 16.dp,
-                    verticalBias = 0.3f
-                )
+                start.linkTo(albumArt.end, 16.dp)
+                end.linkTo(playPauseButton.start, 16.dp)
+                top.linkTo(albumArt.top)
+                bottom.linkTo(albumArt.bottom)
                 width = Dimension.fillToConstraints
-                customInt("textAlign", 1)
+                customInt(textAlign, 1)
+                customInt(maxLines, 1)
+                customFontSize(fontSize, endTitleFontSize)
             }
 
             constrain(artist) {
                 start.linkTo(trackTitle.start)
                 end.linkTo(trackTitle.end)
-                top.linkTo(trackTitle.bottom, 8.dp)
+                top.linkTo(trackTitle.bottom)
+//                bottom.linkTo(albumArt.bottom)
                 width = Dimension.fillToConstraints
-                customInt("textAlign", 1)
+                customFontSize(fontSize, endArtistFontSize)
             }
 
             constrain(currentDuration) {
                 start.linkTo(seekBar.start)
                 top.linkTo(seekBar.bottom)
-                alpha = 0.0F
+                alpha = 0F
             }
 
             constrain(trackDuration) {
                 end.linkTo(seekBar.end)
                 top.linkTo(seekBar.bottom)
-                alpha = 0.0F
+                alpha = 0F
             }
 
             constrain(previousButton) {
@@ -172,11 +181,11 @@ fun motionScene(): MotionScene {
                 end.linkTo(playPauseButton.start)
                 top.linkTo(playPauseButton.top)
                 bottom.linkTo(playPauseButton.bottom)
-                alpha = 0.0F
+                alpha = 0F
             }
 
             constrain(nextButton) {
-                end.linkTo(parent.end)
+                end.linkTo(parent.end, 16.dp)
                 top.linkTo(albumArt.top)
                 bottom.linkTo(albumArt.bottom)
                 width = Dimension.value(24.dp)
@@ -189,6 +198,7 @@ fun motionScene(): MotionScene {
                 bottom.linkTo(nextButton.bottom)
                 width = Dimension.value(24.dp)
                 height = Dimension.value(24.dp)
+                customInt(showBackground, 1)
             }
 
             constrain(shuffleButton) {
@@ -196,7 +206,7 @@ fun motionScene(): MotionScene {
                 end.linkTo(previousButton.start)
                 top.linkTo(playPauseButton.top)
                 bottom.linkTo(playPauseButton.bottom)
-                alpha = 0.0F
+                alpha = 0F
             }
 
             constrain(repeatButton) {
@@ -204,19 +214,20 @@ fun motionScene(): MotionScene {
                 end.linkTo(seekBar.end)
                 top.linkTo(playPauseButton.top)
                 bottom.linkTo(playPauseButton.bottom)
-                alpha = 0.0F
+                alpha = 0F
             }
 
             constrain(seekBar) {
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
                 top.linkTo(artist.bottom, 16.dp)
-                alpha = 0.0F
+                alpha = 0F
             }
         }
 
         transition(startSet, endSet, "default") {
             keyAttributes(
+                topAppBar,
                 currentDuration,
                 trackDuration,
                 seekBar,
@@ -224,52 +235,139 @@ fun motionScene(): MotionScene {
                 shuffleButton,
                 repeatButton
             ) {
+                frame(15) {
+                    alpha = 0F
+                }
+                frame(50) {
+                    alpha = 0F
+                }
+                frame(75) {
+                    alpha = 0F
+                }
+                frame(100) {
+                    alpha = 0F
+                }
+            }
+
+            keyAttributes(
+                trackTitle,
+                artist
+            ) {
+                frame(15) {
+                    alpha = 0F
+                    customInt(textAlign, 0)
+                    customInt(maxLines, 2)
+                }
+                frame(30) {
+                    alpha = 0F
+                    customInt(textAlign, 1)
+                    customInt(maxLines, 1)
+                }
+                frame(50) {
+                    alpha = 0F
+                    customInt(textAlign, 1)
+                    customInt(maxLines, 1)
+                }
+                frame(99) {
+                    alpha = 0.5F
+                    customInt(textAlign, 1)
+                    customInt(maxLines, 1)
+                }
+            }
+
+            keyAttributes(
+                playPauseButton,
+                nextButton
+            ) {
+                frame(15) {
+                    alpha = 0F
+                    customInt(showBackground, 0)
+                }
+                frame(30) {
+                    alpha = 0F
+                    customInt(showBackground, 1)
+                }
+                frame(50) {
+                    alpha = 0F
+                    customInt(showBackground, 1)
+                }
+                frame(99) {
+                    alpha = 0.5F
+                    customInt(showBackground, 1)
+                }
+            }
+
+            keyPositions(
+                topAppBar,
+                currentDuration,
+                trackDuration,
+                seekBar,
+                previousButton,
+                shuffleButton,
+                repeatButton
+            ) {
+                type = RelativePosition.Path
+
                 frame(25) {
-                    alpha = 0.0F
+                    percentX = 0F
+                    percentY = 0F
+                    percentHeight = 0F
+                    percentWidth = 0F
+                }
+                frame(50) {
+                    percentX = 0F
+                    percentY = 0F
+                    percentHeight = 0F
+                    percentWidth = 0F
+                }
+                frame(75) {
+                    percentX = 0F
+                    percentY = 0F
+                    percentHeight = 0F
+                    percentWidth = 0F
+                }
+                frame(100) {
+                    percentX = 0F
+                    percentY = 0F
+                    percentHeight = 0F
+                    percentWidth = 0F
                 }
             }
 
             keyPositions(
                 trackTitle,
                 artist,
-                currentDuration,
-                trackDuration,
-                playPauseButton,
                 nextButton,
-                seekBar,
-                previousButton,
-                shuffleButton,
-                repeatButton
+                playPauseButton
             ) {
-                frame(10) {
-                    percentX = 0.0F
-                    percentY = 0.0F
-                    percentHeight = 0.0F
-                    percentWidth = 0.0F
-                }
-                frame(20) {
-                    percentX = 0.0F
-                    percentY = 0.0F
-                    percentHeight = 0.0F
-                    percentWidth = 0.0F
-                }
-                frame(30) {
-                    percentX = 0.0F
-                    percentY = 0.0F
-                    percentHeight = 0.0F
-                    percentWidth = 0.0F
-                }
-                frame(40) {
-                    percentX = 0.0F
-                    percentY = 0.0F
-                    percentHeight = 0.0F
-                    percentWidth = 0.0F
+                type = RelativePosition.Path
+
+                frame(25) {
+                    percentX = 0F
+                    percentY = 0F
+                    percentHeight = 0F
+                    percentWidth = 0F
                 }
                 frame(50) {
-                    percentX = 0.0F
-                    percentY = 0.0F
-                    percentHeight = 0.0F
-                    percentWidth = 0.0F
+                    type = RelativePosition.Delta
+                    percentX = 1F
+                    percentY = 1F
+                    percentHeight = 1F
+                    percentWidth = 1F
+                }
+                frame(75) {
+                    type = RelativePosition.Delta
+                    percentX = 1F
+                    percentY = 1F
+                    percentHeight = 1F
+                    percentWidth = 1F
+                }
+                frame(100) {
+                    type = RelativePosition.Delta
+                    percentX = 1F
+                    percentY = 1F
+                    percentHeight = 1F
+                    percentWidth = 1F
                 }
             }
 

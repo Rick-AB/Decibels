@@ -34,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -44,6 +43,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.*
@@ -129,8 +129,6 @@ fun NowPlayingScreen(
     var color by remember { mutableStateOf(secondaryBackgroundColor) }
     val animatedOnBackgroundColor by animateColorAsState(targetValue = color)
 
-    val showToolbar by remember { derivedStateOf { scaffoldState.currentFraction <= 0.9f } }
-
     LaunchedEffect(key1 = trackThumbnail) {
         if (hasThumbnail) {
             Palette.from(trackThumbnail).generate { palette ->
@@ -170,7 +168,6 @@ fun NowPlayingScreen(
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 48.dp,
-        topBar = { if (showToolbar) NowPlayingTopAppBar(onBackClick = goBack) { scaffoldState.currentFraction } },
         modifier = Modifier.fillMaxSize(),
         backgroundColor = animatedBackgroundColor,
         sheetContent = {
@@ -190,8 +187,11 @@ fun NowPlayingScreen(
             progress = scaffoldState.currentFraction,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 35.dp)
         ) {
+            NowPlayingTopAppBar(
+                onBackClick = goBack,
+                modifier = Modifier.layoutId(NowPlayingLayout.TOP_APP_BAR)
+            )
 
             Image(
                 bitmap = trackThumbnail.asImageBitmap(),
@@ -200,6 +200,9 @@ fun NowPlayingScreen(
             )
 
             val titleProperties = customProperties(NowPlayingLayout.TITLE.name)
+            val alignmentProperty = titleProperties.int(textAlign)
+            val singleLineProperty = titleProperties.int(maxLines)
+            val titleFontSize = titleProperties.fontSize(fontSize)
             AnimatedContent(
                 targetState = trackState.trackTitle,
                 transitionSpec = { fadeIn(tween(500)) with fadeOut(tween(500)) },
@@ -207,13 +210,15 @@ fun NowPlayingScreen(
             ) { trackName ->
                 Text(
                     text = trackName,
-                    style = Typography.titleMedium,
+                    style = Typography.titleMedium.copy(fontSize = titleFontSize),
                     fontWeight = FontWeight.SemiBold,
-                    textAlign = getTextAlignmentFromInt(titleProperties.int("textAlign")),
+                    textAlign = getTextAlignmentFromInt(alignmentProperty),
+                    maxLines = singleLineProperty,
+                    overflow = TextOverflow.Clip
                 )
             }
 
-            val artistProperties = customProperties(NowPlayingLayout.ARTIST.name)
+            val artistFontSize = customProperties(NowPlayingLayout.ARTIST.name).fontSize(fontSize)
             AnimatedContent(
                 targetState = trackState.artist,
                 transitionSpec = { fadeIn(tween(500)) with fadeOut(tween(500)) },
@@ -221,8 +226,10 @@ fun NowPlayingScreen(
             ) { artist ->
                 Text(
                     text = artist,
-                    style = Typography.bodyMedium,
-                    textAlign = getTextAlignmentFromInt(artistProperties.int("textAlign")),
+                    style = Typography.bodyMedium.copy(fontSize = artistFontSize),
+                    textAlign = getTextAlignmentFromInt(alignmentProperty),
+                    maxLines = singleLineProperty,
+                    overflow = TextOverflow.Clip
                 )
             }
 
@@ -274,11 +281,13 @@ fun NowPlayingScreen(
                 controller?.seekToPreviousMediaItem()
             }
 
+            val buttonProperties = customProperties(NowPlayingLayout.PLAY_PAUSE.name)
             NowPlayingControlButton(
                 iconRes = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
                 contentDesc = R.string.play_pause_button,
                 size = 40.dp,
                 backgroundColor = animatedOnBackgroundColor,
+                showBackground = buttonProperties.int(showBackground) == 0,
                 modifier = Modifier.layoutId(NowPlayingLayout.PLAY_PAUSE)
             ) {
                 if (isPlaying) controller?.pause()
@@ -339,29 +348,44 @@ fun NowPlayingControlButton(
     @StringRes contentDesc: Int,
     size: Dp,
     backgroundColor: Color,
+    showBackground: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    Box(
-        modifier = modifier
-            .clickable(
-                shape = CircleShape,
-                onClick = onClick
-            )
-            .background(backgroundColor, CircleShape)
-            .padding(8.dp)
-    ) {
-        AnimatedContent(
-            targetState = iconRes,
-            transitionSpec = {
-                slideInVertically(tween()) { fullHeight -> -fullHeight * 2 } with
-                        slideOutVertically(tween()) { fullHeight -> fullHeight * 2 }
-            },
-        ) { res ->
+    if (showBackground) {
+        Box(
+            modifier = modifier
+                .clickable(
+                    shape = CircleShape,
+                    onClick = onClick
+                )
+                .background(backgroundColor, CircleShape)
+                .padding(8.dp)
+        ) {
+            AnimatedContent(
+                targetState = iconRes,
+                transitionSpec = {
+                    slideInVertically(tween()) { fullHeight -> -fullHeight * 2 } with
+                            slideOutVertically(tween()) { fullHeight -> fullHeight * 2 }
+                },
+            ) { res ->
+                Icon(
+                    painter = painterResource(id = res),
+                    contentDescription = stringResource(id = contentDesc),
+                    modifier = Modifier.size(size)
+                )
+            }
+        }
+    } else {
+        IconButton(
+            onClick = onClick,
+            modifier = modifier
+        ) {
             Icon(
-                painter = painterResource(id = res),
+                painter = painterResource(id = iconRes),
                 contentDescription = stringResource(id = contentDesc),
-                modifier = Modifier.size(size)
+                modifier = Modifier
+                    .size(36.dp)
             )
         }
     }
@@ -399,7 +423,6 @@ fun RepeatIconButton(
 private fun NowPlayingTopAppBar(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
-    bottomSheetOffset: () -> Float,
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
     val nowPlayingContentDesc = stringResource(id = R.string.top_app_bar)
@@ -416,9 +439,7 @@ private fun NowPlayingTopAppBar(
                 ) { isMenuExpanded = false }
             }
         },
-        modifier = modifier
-            .graphicsLayer { alpha = (1).minus(bottomSheetOffset()) }
-            .semantics { contentDescription = nowPlayingContentDesc }
+        modifier = modifier.semantics { contentDescription = nowPlayingContentDesc }
     )
 }
 
