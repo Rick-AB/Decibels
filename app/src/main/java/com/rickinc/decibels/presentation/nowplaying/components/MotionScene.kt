@@ -148,7 +148,8 @@ fun motionScene(): MotionScene {
                 start.linkTo(albumArt.end, 16.dp)
                 end.linkTo(playPauseButton.start, 16.dp)
                 top.linkTo(albumArt.top)
-                bottom.linkTo(albumArt.bottom)
+                // no support for chains in motion layout, hence negative margin to depict packed chain style
+                bottom.linkTo(artist.top, (-2).dp)
                 width = Dimension.fillToConstraints
                 customInt(textAlign, 1)
                 customInt(maxLines, 1)
@@ -158,8 +159,8 @@ fun motionScene(): MotionScene {
             constrain(artist) {
                 start.linkTo(trackTitle.start)
                 end.linkTo(trackTitle.end)
-                top.linkTo(trackTitle.bottom)
-//                bottom.linkTo(albumArt.bottom)
+                top.linkTo(trackTitle.bottom, (-2).dp)
+                bottom.linkTo(albumArt.bottom)
                 width = Dimension.fillToConstraints
                 customFontSize(fontSize, endArtistFontSize)
             }

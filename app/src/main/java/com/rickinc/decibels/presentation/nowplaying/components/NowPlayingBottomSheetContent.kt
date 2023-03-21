@@ -19,15 +19,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rickinc.decibels.R
+import com.rickinc.decibels.domain.exception.ErrorHolder
 import com.rickinc.decibels.presentation.nowplaying.*
 import com.rickinc.decibels.presentation.ui.components.LottieLoading
 import com.rickinc.decibels.presentation.util.formatTrackDuration
+import com.rickinc.decibels.presentation.util.isDark
 
 @Composable
 fun NowPlayingBottomSheetContent(
@@ -41,13 +47,17 @@ fun NowPlayingBottomSheetContent(
     val bottomSheetUiState =
         nowPlayingViewModel.bottomSheetUiState.collectAsStateWithLifecycle().value
 
-    LaunchedEffect(key1 = nowPlayingUiState.track.trackId) {
+    val actionGetTrackLyrics = {
         nowPlayingViewModel.onEvent(
-            NowPlayingEvent.OnTrackChanged(
+            NowPlayingEvent.OnGetLyrics(
                 context,
                 nowPlayingUiState.track
             )
         )
+    }
+
+    LaunchedEffect(key1 = nowPlayingUiState.track.trackId) {
+        actionGetTrackLyrics()
     }
 
     Column(
@@ -80,10 +90,64 @@ fun NowPlayingBottomSheetContent(
                         )
                     }
                     is NowPlayingBottomSheetState.ErrorLoadingLyrics -> {
+                        LyricsErrorView(
+                            it.error,
+                            animatedBackgroundColor,
+                            actionGetTrackLyrics
+                        )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun LyricsErrorView(
+    error: ErrorHolder,
+    animatedBackgroundColor: Color,
+    actionRetry: () -> Unit
+) {
+    val isDark = animatedBackgroundColor.toArgb().isDark()
+    val textColor = if (isDark) Color.White else Color.Gray
+    val buttonBackground = if (isDark) Color.White else MaterialTheme.colorScheme.onPrimary
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = error.message,
+            style = MaterialTheme.typography.titleMedium.copy(
+                color = textColor,
+                textAlign = TextAlign.Center
+            )
+        )
+
+        if (error is ErrorHolder.NetworkConnection) {
+
+            Spacer(modifier = Modifier.height(4.dp))
+            Button(
+                onClick = actionRetry,
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = Color.Gray,
+                    containerColor = buttonBackground
+                )
+            ) {
+                Text(
+                    text = stringResource(id = R.string.retry),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ErrorViewPrev() {
+    LyricsErrorView(
+        error = ErrorHolder.NetworkConnection("No internet connection"),
+        animatedBackgroundColor = Color.Black
+    ) {
+
     }
 }
 
@@ -119,7 +183,7 @@ fun NowPlayingBottomSheetLoaded(
 
         LyricsView(
             state = lyricsViewState,
-            modifier = Modifier.weight(weight = 1f, fill = false),
+            modifier = Modifier.weight(weight = 1f),
             contentColor = contentColor,
             contentPadding = PaddingValues(
                 start = 16.dp,
@@ -130,7 +194,7 @@ fun NowPlayingBottomSheetLoaded(
             fadingEdges = FadingEdges(top = 16.dp, bottom = 150.dp),
         )
 
-        PlaybackControls(state = lyricsViewState, nowPlayingUiState = nowPlayingUiState)
+//        PlaybackControls(state = lyricsViewState, nowPlayingUiState = nowPlayingUiState)
     }
 }
 

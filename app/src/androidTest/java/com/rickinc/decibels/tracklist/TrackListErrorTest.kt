@@ -1,7 +1,10 @@
 package com.rickinc.decibels.tracklist
 
+import android.content.Context
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.rickinc.decibels.di.RepositoryModule
+import com.rickinc.decibels.domain.exception.ErrorHolder
+import com.rickinc.decibels.domain.model.NowPlaying
 import com.rickinc.decibels.domain.model.Result
 import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.presentation.MainActivity
@@ -13,6 +16,7 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.UninstallModules
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.Flow
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -55,7 +59,23 @@ class TrackListErrorTest {
 
     class TestAudioErrorRepository : AudioRepository {
         override suspend fun getAudioFiles(): Result<List<Track>> {
-            return Result.Error("Failed to load audio files")
+            return Result.Error(ErrorHolder.Local("Failed to load audio files"))
+        }
+
+        override suspend fun updateNowPlaying(nowPlaying: NowPlaying) {
+            TODO("Not yet implemented")
+        }
+
+        override fun getNowPlayingFlow(): Flow<NowPlaying?> {
+            TODO("Not yet implemented")
+        }
+
+        override fun deleteTrack(context: Context, track: Track) {
+            TODO("Not yet implemented")
+        }
+
+        override suspend fun getLyricsForTrack(context: Context, track: Track): Result<String> {
+            TODO("Not yet implemented")
         }
     }
 }

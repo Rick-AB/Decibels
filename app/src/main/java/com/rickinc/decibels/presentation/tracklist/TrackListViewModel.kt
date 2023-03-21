@@ -5,8 +5,6 @@ import android.database.ContentObserver
 import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.Player
-import com.rickinc.decibels.domain.model.NowPlaying
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.domain.util.TrackConverter
@@ -51,22 +49,11 @@ class TrackListViewModel @Inject constructor(
                     _uiState.update { TrackListState.DataLoaded(tracks, tracksAsMediaItems) }
                 },
                 onFailure = { error ->
-                    _uiState.update { TrackListState.Error(error.errorMessage) }
+                    _uiState.update { TrackListState.Error(error.message) }
                 }
             )
         }
     }
-
-//    suspend fun updateNowPlaying(track: Track) {
-//        val nowPlaying = NowPlaying(
-//            id = track.trackId.toInt(),
-//            track = track,
-//            isPlaying = true,
-//            repeatMode = Player.REPEAT_MODE_OFF,
-//            shuffleActive = false
-//        )
-//        audioRepo.updateNowPlaying(nowPlaying)
-//    }
 
     fun setNowPlaying(selectedTrack: Track) = _nowPlayingTrack.update { selectedTrack }
 

@@ -4,12 +4,11 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.PlaybackException
-import com.rickinc.decibels.domain.model.Result
+import com.rickinc.decibels.domain.exception.ErrorHolder
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.AudioRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -43,7 +42,7 @@ class NowPlayingViewModel @Inject constructor(
 
                 exception != null -> {
                     val errorMessage = exception.localizedMessage ?: ""
-                    NowPlayingState.ErrorLoadingTrack(Result.Error(errorMessage))
+                    NowPlayingState.ErrorLoadingTrack(ErrorHolder.Local(errorMessage))
                 }
 
                 else -> null
@@ -65,7 +64,7 @@ class NowPlayingViewModel @Inject constructor(
             is NowPlayingEvent.OnError -> errorFlow.update { event.error }
             is NowPlayingEvent.OnProgressChanged -> progressFlow.update { event.progress }
             is NowPlayingEvent.OnPlaybackStateChanged -> playbackStateFlow.update { event.playbackState }
-            is NowPlayingEvent.OnTrackChanged -> getLyricsForTrack(event.context, event.track)
+            is NowPlayingEvent.OnGetLyrics -> getLyricsForTrack(event.context, event.track)
         }
     }
 
@@ -79,7 +78,7 @@ class NowPlayingViewModel @Inject constructor(
                     _bottomSheetUiState.update { NowPlayingBottomSheetState.LyricsLoaded(lyrics) }
                 },
                 onFailure = { error ->
-                    _bottomSheetUiState.update { NowPlayingBottomSheetState.ErrorLoadingLyrics(error.errorMessage) }
+                    _bottomSheetUiState.update { NowPlayingBottomSheetState.ErrorLoadingLyrics(error) }
                 }
             )
         }

@@ -82,7 +82,7 @@ fun NowPlayingScreen(selectedTrack: Track, goBack: () -> Unit) {
             )
         }
         is NowPlayingState.ErrorLoadingTrack -> {
-            Toast.makeText(context, uiState.error.errorMessage, Toast.LENGTH_LONG).show()
+            Toast.makeText(context, uiState.error.message, Toast.LENGTH_LONG).show()
             goBack()
         }
         else -> {}

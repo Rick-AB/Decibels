@@ -9,5 +9,5 @@ sealed class NowPlayingEvent {
     data class OnProgressChanged(val progress: Long) : NowPlayingEvent()
     data class OnPlaybackStateChanged(val playbackState: Int) : NowPlayingEvent()
 
-    data class OnTrackChanged(val context: Context, val track: Track) : NowPlayingEvent()
+    data class OnGetLyrics(val context: Context, val track: Track) : NowPlayingEvent()
 }
