@@ -17,16 +17,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -35,11 +43,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ChainStyle
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
+import androidx.constraintlayout.compose.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -49,23 +56,33 @@ import androidx.media3.session.MediaController
 import androidx.palette.graphics.Palette
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.rickinc.decibels.R
+import com.rickinc.decibels.domain.model.Track
+import com.rickinc.decibels.presentation.nowplaying.components.NowPlayingBottomSheetContent
+import com.rickinc.decibels.presentation.nowplaying.components.motionScene
 import com.rickinc.decibels.presentation.ui.components.DefaultTopAppBar
+import com.rickinc.decibels.presentation.ui.components.clickable
+import com.rickinc.decibels.presentation.ui.components.currentFraction
 import com.rickinc.decibels.presentation.ui.theme.LightBlack
 import com.rickinc.decibels.presentation.ui.theme.LocalController
 import com.rickinc.decibels.presentation.ui.theme.Typography
-import com.rickinc.decibels.presentation.util.clickable
 import com.rickinc.decibels.presentation.util.formatTrackDuration
 
-
 @Composable
-fun NowPlayingScreen(goBack: () -> Unit) {
+fun NowPlayingScreen(selectedTrack: Track, goBack: () -> Unit) {
     val context = LocalContext.current
     val nowPlayingViewModel: NowPlayingViewModel = hiltViewModel(context as ComponentActivity)
 
     when (val uiState = nowPlayingViewModel.uiState.collectAsStateWithLifecycle().value) {
-        is NowPlayingState.TrackLoaded -> NowPlayingScreen(uiState = uiState, goBack = goBack)
+        is NowPlayingState.TrackLoaded -> {
+            NowPlayingScreen(
+                selectedTrack = selectedTrack,
+                uiState = uiState,
+                nowPlayingViewModel = nowPlayingViewModel,
+                goBack = goBack
+            )
+        }
         is NowPlayingState.ErrorLoadingTrack -> {
-            Toast.makeText(context, uiState.error.errorMessage, Toast.LENGTH_LONG).show()
+            Toast.makeText(context, uiState.error.message, Toast.LENGTH_LONG).show()
             goBack()
         }
         else -> {}
@@ -80,24 +97,37 @@ fun NowPlayingScreen(goBack: () -> Unit) {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun NowPlayingScreen(
+    selectedTrack: Track,
     uiState: NowPlayingState.TrackLoaded,
+    nowPlayingViewModel: NowPlayingViewModel,
     goBack: () -> Unit
 ) {
-    val systemUiController = rememberSystemUiController()
+    val (track, isPlaying, repeatMode, isShuffleActive, progress, _) = uiState
+    var useUiState by remember { mutableStateOf(false) }
+
+    // initialize trackState with the selected track passed to the screen bcuz track from uiState can hold stale data initially
+    val trackState by remember(track.trackId) {
+        if (selectedTrack.trackId == track.trackId && !useUiState) useUiState = true
+
+        if (useUiState) mutableStateOf(track)
+        else mutableStateOf(selectedTrack)
+    }
+
     val primaryBackgroundColor = LightBlack
     val secondaryBackgroundColor = MaterialTheme.colorScheme.primary
-    val track = uiState.track
-    val hasThumbnail = track.hasThumbnail
-    val trackThumbnail = track.thumbnail!!
+    val hasThumbnail = trackState.hasThumbnail
+    val trackThumbnail = trackState.thumbnail!!
     val controller = LocalController.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val window = (LocalContext.current as ComponentActivity).window
+    val systemUiController = rememberSystemUiController()
+    val scaffoldState = rememberBottomSheetScaffoldState()
 
     var backgroundColor by remember { mutableStateOf(primaryBackgroundColor) }
     val animatedBackgroundColor by animateColorAsState(targetValue = backgroundColor)
 
     var color by remember { mutableStateOf(secondaryBackgroundColor) }
-    val animatedColor by animateColorAsState(targetValue = color)
+    val animatedOnBackgroundColor by animateColorAsState(targetValue = color)
 
     LaunchedEffect(key1 = trackThumbnail) {
         if (hasThumbnail) {
@@ -114,8 +144,11 @@ fun NowPlayingScreen(
             backgroundColor = primaryBackgroundColor
             color = secondaryBackgroundColor
         }
+    }
 
-        systemUiController.setSystemBarsColor(backgroundColor)
+    LaunchedEffect(key1 = backgroundColor, key2 = color) {
+        systemUiController.setStatusBarColor(backgroundColor)
+        systemUiController.setNavigationBarColor(color)
     }
 
     DisposableEffect(key1 = lifecycleOwner) {
@@ -127,142 +160,112 @@ fun NowPlayingScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
 
         onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
-    val showTrackInfo = remember(track) {
-//        track.trackId.toString() == controller?.currentMediaItem?.mediaId
-        true
-    }
-
-    Scaffold(
-        topBar = { NowPlayingTopAppBar(goBack) },
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = 48.dp,
         modifier = Modifier.fillMaxSize(),
-        containerColor = animatedBackgroundColor
+        backgroundColor = animatedBackgroundColor,
+        sheetContent = {
+            NowPlayingBottomSheetContent(
+                uiState,
+                nowPlayingViewModel,
+                animatedBackgroundColor,
+                scaffoldState.bottomSheetState.isCollapsed,
+            ) { scaffoldState.currentFraction }
+        },
+        sheetElevation = 8.dp,
+        sheetBackgroundColor = animatedOnBackgroundColor,
+        sheetShape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
     ) { _ ->
-        ConstraintLayout(
+        MotionLayout(
+            motionScene = motionScene(),
+            progress = scaffoldState.currentFraction,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 35.dp)
         ) {
-            val (albumArtComposable, trackNameComposable, artistComposable,
-                currentDurationComposable, trackDurationComposable, seekBar, previousButton,
-                nextButton, playPauseButton, shuffleButton, repeatButton) = createRefs()
-
-            val guideLine = createGuidelineFromTop(0.55f)
-
-            if (showTrackInfo) {
-                Image(
-                    bitmap = trackThumbnail.asImageBitmap(),
-                    contentDescription = stringResource(id = R.string.album_art),
-                    modifier = Modifier.constrainAs(albumArtComposable) {
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                        bottom.linkTo(guideLine)
-                        width = Dimension.fillToConstraints
-                        height = Dimension.ratio("1:1")
-                    }
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_baseline_audio_file_24),
-                    contentDescription = stringResource(id = R.string.album_art),
-                    modifier = Modifier
-                        .constrainAs(albumArtComposable) {
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                            bottom.linkTo(guideLine)
-                            width = Dimension.fillToConstraints
-                            height = Dimension.ratio("1:1")
-                        }
-                )
-            }
-
-            AnimatedContent(
-                targetState = track.trackTitle,
-                transitionSpec = { fadeIn(tween(500)) with fadeOut(tween(500)) },
-                modifier = Modifier.constrainAs(trackNameComposable) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(guideLine, 16.dp)
-                }
+            NowPlayingTopAppBar(
+                onBackClick = goBack,
+                modifier = Modifier.layoutId(NowPlayingLayout.TOP_APP_BAR)
             )
-            { trackName ->
+
+            Image(
+                bitmap = trackThumbnail.asImageBitmap(),
+                contentDescription = stringResource(id = R.string.album_art),
+                modifier = Modifier.layoutId(NowPlayingLayout.IMAGE)
+            )
+
+            val titleProperties = customProperties(NowPlayingLayout.TITLE.name)
+            val alignmentProperty = titleProperties.int(textAlign)
+            val singleLineProperty = titleProperties.int(maxLines)
+            val titleFontSize = titleProperties.fontSize(fontSize)
+            AnimatedContent(
+                targetState = trackState.trackTitle,
+                transitionSpec = { fadeIn(tween(500)) with fadeOut(tween(500)) },
+                modifier = Modifier.layoutId(NowPlayingLayout.TITLE)
+            ) { trackName ->
                 Text(
                     text = trackName,
-                    style = Typography.titleMedium,
+                    style = Typography.titleMedium.copy(fontSize = titleFontSize),
                     fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center,
+                    textAlign = getTextAlignmentFromInt(alignmentProperty),
+                    maxLines = singleLineProperty,
+                    overflow = TextOverflow.Clip
                 )
             }
 
+            val artistFontSize = customProperties(NowPlayingLayout.ARTIST.name).fontSize(fontSize)
             AnimatedContent(
-                targetState = track.artist,
+                targetState = trackState.artist,
                 transitionSpec = { fadeIn(tween(500)) with fadeOut(tween(500)) },
-                modifier = Modifier.constrainAs(artistComposable) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(trackNameComposable.bottom, 8.dp)
-                }
-            )
-            { artist ->
+                modifier = Modifier.layoutId(NowPlayingLayout.ARTIST)
+            ) { artist ->
                 Text(
                     text = artist,
-                    style = Typography.bodyMedium,
-                    textAlign = TextAlign.Center,
+                    style = Typography.bodyMedium.copy(fontSize = artistFontSize),
+                    textAlign = getTextAlignmentFromInt(alignmentProperty),
+                    maxLines = singleLineProperty,
+                    overflow = TextOverflow.Clip
                 )
             }
 
             val sliderContentDesc = stringResource(id = R.string.seek_bar)
             Slider(
-                value = uiState.progress.toFloat(),
+                value = progress.toFloat(),
                 onValueChange = { controller?.seekTo(it.toLong()) },
                 colors = SliderDefaults.colors(
                     thumbColor = MaterialTheme.colorScheme.onBackground,
                     activeTrackColor = MaterialTheme.colorScheme.onBackground
                 ),
-                valueRange = 0f..uiState.track.trackLength.toFloat(),
+                valueRange = 0f..track.trackLength.toFloat(),
                 modifier = Modifier
-                    .constrainAs(seekBar) {
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                        top.linkTo(artistComposable.bottom, 16.dp)
-                    }
+                    .layoutId(NowPlayingLayout.SEEK_BAR)
                     .semantics { contentDescription = sliderContentDesc }
             )
 
-            val currentDuration = formatTrackDuration(uiState.progress)
+            val currentDuration = formatTrackDuration(progress)
             Text(
-                text = if (showTrackInfo) currentDuration else "--",
+                text = currentDuration,
                 style = Typography.bodyMedium,
-                modifier = Modifier.constrainAs(currentDurationComposable) {
-                    start.linkTo(seekBar.start)
-                    top.linkTo(seekBar.bottom)
-                }
+                modifier = Modifier.layoutId(NowPlayingLayout.CURRENT_DURATION)
             )
 
-            val trackDuration = formatTrackDuration(uiState.track.trackLength.toLong())
+            val trackDuration = formatTrackDuration(track.trackLength.toLong())
             Text(
-                text = if (showTrackInfo) trackDuration else "--",
+                text = trackDuration,
                 style = Typography.bodyMedium,
-                modifier = Modifier.constrainAs(trackDurationComposable) {
-                    end.linkTo(seekBar.end)
-                    top.linkTo(seekBar.bottom)
-                }
+                modifier = Modifier.layoutId(NowPlayingLayout.TRACK_DURATION)
             )
 
             NowPlayingControlButton(
                 iconRes = R.drawable.ic_shuffle,
                 contentDesc = R.string.shuffle_button,
-                tint = if (uiState.isShuffleActive) MaterialTheme.colorScheme.primary else Color.White,
-                modifier = Modifier.constrainAs(shuffleButton) {
-                    start.linkTo(seekBar.start)
-                    end.linkTo(previousButton.start)
-                    top.linkTo(playPauseButton.top)
-                    bottom.linkTo(playPauseButton.bottom)
-                }
+                tint = if (isShuffleActive) MaterialTheme.colorScheme.primary else Color.White,
+                modifier = Modifier.layoutId(NowPlayingLayout.SHUFFLE)
             ) {
                 controller?.shuffleModeEnabled = !controller?.shuffleModeEnabled!!
             }
@@ -273,28 +276,21 @@ fun NowPlayingScreen(
                 contentDesc = R.string.previous_track_button,
                 tint = Color.White,
                 size = controlSize,
-                modifier = Modifier.constrainAs(previousButton) {
-                    start.linkTo(shuffleButton.end)
-                    end.linkTo(playPauseButton.start)
-                    top.linkTo(playPauseButton.top)
-                    bottom.linkTo(playPauseButton.bottom)
-                }
+                modifier = Modifier.layoutId(NowPlayingLayout.PREVIOUS)
             ) {
                 controller?.seekToPreviousMediaItem()
             }
 
+            val buttonProperties = customProperties(NowPlayingLayout.PLAY_PAUSE.name)
             NowPlayingControlButton(
-                iconRes = if (uiState.isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
+                iconRes = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
                 contentDesc = R.string.play_pause_button,
                 size = 40.dp,
-                backgroundColor = animatedColor,
-                modifier = Modifier.constrainAs(playPauseButton) {
-                    start.linkTo(previousButton.end)
-                    end.linkTo(nextButton.start)
-                    top.linkTo(seekBar.bottom, 16.dp)
-                }
+                backgroundColor = animatedOnBackgroundColor,
+                showBackground = buttonProperties.int(showBackground) == 0,
+                modifier = Modifier.layoutId(NowPlayingLayout.PLAY_PAUSE)
             ) {
-                if (uiState.isPlaying) controller?.pause()
+                if (isPlaying) controller?.pause()
                 else controller?.play()
             }
 
@@ -304,47 +300,28 @@ fun NowPlayingScreen(
                 contentDesc = R.string.next_track_button,
                 tint = Color.White,
                 size = controlSize,
-                modifier = Modifier.constrainAs(nextButton) {
-                    start.linkTo(playPauseButton.end)
-                    end.linkTo(repeatButton.start)
-                    top.linkTo(playPauseButton.top)
-                    bottom.linkTo(playPauseButton.bottom)
-                }
+                modifier = Modifier.layoutId(NowPlayingLayout.NEXT)
             ) {
                 controller?.seekToNextMediaItem()
             }
 
-            val isRepeatOn = uiState.repeatMode != Player.REPEAT_MODE_OFF
+            val isRepeatOn = repeatMode != Player.REPEAT_MODE_OFF
             RepeatIconButton(
                 iconRes = R.drawable.ic_repeat,
                 contentDesc = R.string.repeat_button,
                 tint = if (isRepeatOn) MaterialTheme.colorScheme.primary else Color.White,
-                repeatMode = uiState.repeatMode,
-                modifier = Modifier.constrainAs(repeatButton) {
-                    start.linkTo(nextButton.end)
-                    end.linkTo(seekBar.end)
-                    top.linkTo(playPauseButton.top)
-                    bottom.linkTo(playPauseButton.bottom)
-                }
+                repeatMode = repeatMode,
+                modifier = Modifier.layoutId(NowPlayingLayout.REPEAT)
             ) {
                 controller?.let {
-                    handleRepeatSelection(uiState, it)
+                    handleRepeatSelection(repeatMode, it)
                 }
             }
-
-
-            createHorizontalChain(
-                shuffleButton,
-                previousButton,
-                playPauseButton,
-                nextButton,
-                repeatButton,
-                chainStyle = ChainStyle.SpreadInside
-            )
         }
 
     }
 }
+
 
 @Composable
 fun NowPlayingControlButton(
@@ -371,29 +348,44 @@ fun NowPlayingControlButton(
     @StringRes contentDesc: Int,
     size: Dp,
     backgroundColor: Color,
+    showBackground: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    Box(
-        modifier = modifier
-            .clickable(
-                shape = CircleShape,
-                onClick = onClick
-            )
-            .background(backgroundColor, CircleShape)
-            .padding(8.dp)
-    ) {
-        AnimatedContent(
-            targetState = iconRes,
-            transitionSpec = {
-                slideInVertically(tween()) { fullHeight -> -fullHeight * 2 } with
-                        slideOutVertically(tween()) { fullHeight -> fullHeight * 2 }
-            },
-        ) { res ->
+    if (showBackground) {
+        Box(
+            modifier = modifier
+                .clickable(
+                    shape = CircleShape,
+                    onClick = onClick
+                )
+                .background(backgroundColor, CircleShape)
+                .padding(8.dp)
+        ) {
+            AnimatedContent(
+                targetState = iconRes,
+                transitionSpec = {
+                    slideInVertically(tween()) { fullHeight -> -fullHeight * 2 } with
+                            slideOutVertically(tween()) { fullHeight -> fullHeight * 2 }
+                },
+            ) { res ->
+                Icon(
+                    painter = painterResource(id = res),
+                    contentDescription = stringResource(id = contentDesc),
+                    modifier = Modifier.size(size)
+                )
+            }
+        }
+    } else {
+        IconButton(
+            onClick = onClick,
+            modifier = modifier
+        ) {
             Icon(
-                painter = painterResource(id = res),
+                painter = painterResource(id = iconRes),
                 contentDescription = stringResource(id = contentDesc),
-                modifier = Modifier.size(size)
+                modifier = Modifier
+                    .size(36.dp)
             )
         }
     }
@@ -429,6 +421,7 @@ fun RepeatIconButton(
 
 @Composable
 private fun NowPlayingTopAppBar(
+    modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
@@ -446,7 +439,7 @@ private fun NowPlayingTopAppBar(
                 ) { isMenuExpanded = false }
             }
         },
-        modifier = Modifier.semantics { contentDescription = nowPlayingContentDesc }
+        modifier = modifier.semantics { contentDescription = nowPlayingContentDesc }
     )
 }
 
@@ -488,12 +481,19 @@ private fun OverFlowIcon(onClick: () -> Unit) {
 }
 
 private fun handleRepeatSelection(
-    uiState: NowPlayingState.TrackLoaded,
+    repeatMode: Int,
     mediaController: MediaController
 ) {
-    when (uiState.repeatMode) {
+    when (repeatMode) {
         Player.REPEAT_MODE_OFF -> mediaController.repeatMode = Player.REPEAT_MODE_ALL
         Player.REPEAT_MODE_ALL -> mediaController.repeatMode = Player.REPEAT_MODE_ONE
         Player.REPEAT_MODE_ONE -> mediaController.repeatMode = Player.REPEAT_MODE_OFF
+    }
+}
+
+private fun getTextAlignmentFromInt(value: Int): TextAlign {
+    return when (value) {
+        0 -> TextAlign.Center
+        else -> TextAlign.Start
     }
 }

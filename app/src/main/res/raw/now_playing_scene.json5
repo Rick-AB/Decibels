@@ -1,0 +1,436 @@
+{
+  ConstraintSets: {
+    start: {
+      guideLine: {
+        type: 'hGuideline',
+        percent: 0.55
+      },
+      albumArt: {
+        start: [
+          'parent',
+          'start',
+          0
+        ],
+        end: [
+          'parent',
+          'end',
+          0
+        ],
+        bottom: [
+          'guideLine',
+          'bottom',
+          0
+        ],
+        width: "spread",
+        height: '1:1',
+      },
+      trackTitle: {
+        start: [
+          'parent',
+          'start',
+          0
+        ],
+        end: [
+          'parent',
+          'end',
+          0
+        ],
+        top: [
+          'guideLine',
+          'bottom',
+          16
+        ],
+      },
+      trackArtist: {
+        start: [
+          'parent',
+          'start',
+          0
+        ],
+        end: [
+          'parent',
+          'end',
+          0
+        ],
+        top: [
+          'trackTitle',
+          'bottom',
+          8
+        ],
+      },
+      seekBar: {
+        start: [
+          'parent',
+          'start',
+          0
+        ],
+        end: [
+          'parent',
+          'end',
+          0
+        ],
+        top: [
+          'trackArtist',
+          'bottom',
+          16
+        ],
+      },
+      currentDuration: {
+        start: [
+          'seekBar',
+          'start',
+          0
+        ],
+        top: [
+          'seekBar',
+          'bottom',
+          0
+        ],
+      },
+      trackDuration: {
+        end: [
+          'seekBar',
+          'end',
+          0
+        ],
+        top: [
+          'seekBar',
+          'bottom',
+          0
+        ],
+      },
+      previousButton: {
+        start: [
+          'shuffleButton',
+          'end',
+          0
+        ],
+        end: [
+          'playPauseButton',
+          'start',
+          0
+        ],
+        top: [
+          'playPauseButton',
+          'top',
+          0
+        ],
+        bottom: [
+          'playPauseButton',
+          'bottom',
+          0
+        ],
+      },
+      nextButton: {
+        start: [
+          'playPauseButton',
+          'end',
+          0
+        ],
+        end: [
+          'repeatButton',
+          'start',
+          0
+        ],
+        top: [
+          'playPauseButton',
+          'top',
+          0
+        ],
+        bottom: [
+          'playPauseButton',
+          'bottom',
+          0
+        ],
+      },
+      playPauseButton: {
+        start: [
+          'previousButton',
+          'end',
+          0
+        ],
+        end: [
+          'nextButton',
+          'start',
+          0
+        ],
+        top: [
+          'seekBar',
+          'bottom',
+          16
+        ],
+      },
+      shuffleButton: {
+        start: [
+          'seekBar',
+          'start',
+          0
+        ],
+        end: [
+          'previousButton',
+          'start',
+          0
+        ],
+        top: [
+          'playPauseButton',
+          'top',
+          0
+        ],
+        bottom: [
+          'playPauseButton',
+          'bottom',
+          0
+        ],
+      },
+      repeatButton: {
+        start: [
+          'nextButton',
+          'end',
+          0
+        ],
+        end: [
+          'seekBar',
+          'end',
+          0
+        ],
+        top: [
+          'playPauseButton',
+          'top',
+          0
+        ],
+        bottom: [
+          'playPauseButton',
+          'bottom',
+          0
+        ],
+      },
+      horizontalChain: {
+        type: 'hChain',
+        ids: [
+          'shuffleButton',
+          'previousButton',
+          'playPauseButton',
+          'nextButton',
+          'repeatButton'
+        ],
+        style: 'spread_inside'
+      }
+    },
+    end: {
+      guideLine: {
+        type: 'hGuideline',
+        percent: 0.55
+      },
+      albumArt: {
+        start: [
+          'parent',
+          'start',
+          0
+        ],
+        end: [
+          'parent',
+          'end',
+          0
+        ],
+        bottom: [
+          'guideLine',
+          'bottom',
+          0
+        ],
+        width: "spread",
+        height: '1:1',
+      },
+      trackTitle: {
+        start: [
+          'parent',
+          'start',
+          0
+        ],
+        end: [
+          'parent',
+          'end',
+          0
+        ],
+        top: [
+          'guideLine',
+          'bottom',
+          16
+        ],
+      },
+      trackArtist: {
+        start: [
+          'parent',
+          'start',
+          0
+        ],
+        end: [
+          'parent',
+          'end',
+          0
+        ],
+        top: [
+          'trackTitle',
+          'bottom',
+          8
+        ],
+      },
+      seekBar: {
+        start: [
+          'parent',
+          'start',
+          0
+        ],
+        end: [
+          'parent',
+          'end',
+          0
+        ],
+        top: [
+          'trackArtist',
+          'bottom',
+          16
+        ],
+      },
+      currentDuration: {
+        start: [
+          'seekBar',
+          'start',
+          0
+        ],
+        top: [
+          'seekBar',
+          'bottom',
+          0
+        ],
+      },
+      trackDuration: {
+        end: [
+          'seekBar',
+          'end',
+          0
+        ],
+        top: [
+          'seekBar',
+          'bottom',
+          0
+        ],
+      },
+      previousButton: {
+        start: [
+          'shuffleButton',
+          'end',
+          0
+        ],
+        end: [
+          'playPauseButton',
+          'start',
+          0
+        ],
+        top: [
+          'playPauseButton',
+          'top',
+          0
+        ],
+        bottom: [
+          'playPauseButton',
+          'bottom',
+          0
+        ],
+      },
+      nextButton: {
+        start: [
+          'playPauseButton',
+          'end',
+          0
+        ],
+        end: [
+          'repeatButton',
+          'start',
+          0
+        ],
+        top: [
+          'playPauseButton',
+          'top',
+          0
+        ],
+        bottom: [
+          'playPauseButton',
+          'bottom',
+          0
+        ],
+      },
+      playPauseButton: {
+        start: [
+          'previousButton',
+          'end',
+          0
+        ],
+        end: [
+          'nextButton',
+          'start',
+          0
+        ],
+        top: [
+          'seekBar',
+          'bottom',
+          16
+        ],
+      },
+      shuffleButton: {
+        start: [
+          'seekBar',
+          'start',
+          0
+        ],
+        end: [
+          'previousButton',
+          'start',
+          0
+        ],
+        top: [
+          'playPauseButton',
+          'top',
+          0
+        ],
+        bottom: [
+          'playPauseButton',
+          'bottom',
+          0
+        ],
+      },
+      repeatButton: {
+        start: [
+          'nextButton',
+          'end',
+          0
+        ],
+        end: [
+          'seekBar',
+          'end',
+          0
+        ],
+        top: [
+          'playPauseButton',
+          'top',
+          0
+        ],
+        bottom: [
+          'playPauseButton',
+          'bottom',
+          0
+        ],
+      },
+      horizontalChain: {
+        type: 'hChain',
+        ids: [
+          'shuffleButton',
+          'previousButton',
+          'playPauseButton',
+          'nextButton',
+          'repeatButton'
+        ],
+        style: 'spread_inside'
+      },
+    }
+  }
+}

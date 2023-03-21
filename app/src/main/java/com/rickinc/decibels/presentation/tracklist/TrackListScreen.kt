@@ -42,7 +42,7 @@ import com.rickinc.decibels.presentation.util.hasPermission
 import com.rickinc.decibels.presentation.util.openAppSettings
 
 @Composable
-fun TrackListScreen(onTrackItemClick: (Track) -> Unit) {
+fun TrackListScreen(actionNavigateToNowPlayingScreen: (Track) -> Unit) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = { TrackListTopAppBar() }
@@ -87,7 +87,7 @@ fun TrackListScreen(onTrackItemClick: (Track) -> Unit) {
         }
 
         when {
-            hasStoragePermission -> TrackListBody(padding, onTrackItemClick)
+            hasStoragePermission -> TrackListBody(padding, actionNavigateToNowPlayingScreen)
             shouldShowRationale -> PermissionRequiredBody(isPermanentlyDenied = isPermanentlyDenied()) {
                 shouldShowRationale = false
 
@@ -119,7 +119,7 @@ fun TrackListBody(
                 tracks = trackListScreenState.tracks,
                 tracksAsMediaItems = trackListScreenState.tracksAsMediaItems,
                 nowPlayingState = nowPlayingState,
-                onTrackItemClick = onTrackItemClick,
+                actionNavigateToNowPlaying = onTrackItemClick,
             )
             is TrackListState.Error -> InfoText(R.string.error_loading_audio_files)
             else -> {}
@@ -138,7 +138,7 @@ fun TrackList(
     tracks: List<Track>,
     tracksAsMediaItems: List<MediaItem>,
     nowPlayingState: NowPlayingState?,
-    onTrackItemClick: (Track) -> Unit
+    actionNavigateToNowPlaying: (Track) -> Unit,
 ) {
     if (tracks.isEmpty()) InfoText(stringResource = R.string.empty_track_list)
     else {
@@ -163,7 +163,7 @@ fun TrackList(
                     val actionTrackClick = {
                         playTrack(mediaController, trackAsMediaItem)
                         addPlaylist(mediaController, index, tracksAsMediaItems)
-                        onTrackItemClick(track)
+                        actionNavigateToNowPlaying(track)
                     }
 
                     TrackItem(
@@ -178,7 +178,7 @@ fun TrackList(
 
             if (nowPlayingState is NowPlayingState.TrackLoaded) {
                 NowPlayingPreview(nowPlayingState, Modifier.align(Alignment.BottomCenter)) {
-                    onTrackItemClick(nowPlayingState.track)
+                    actionNavigateToNowPlaying(nowPlayingState.track)
                 }
             }
         }

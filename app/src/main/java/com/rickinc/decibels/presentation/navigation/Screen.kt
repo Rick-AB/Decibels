@@ -1,4 +1,4 @@
-package com.rickinc.decibels.presentation
+package com.rickinc.decibels.presentation.navigation
 
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavType
@@ -20,7 +20,7 @@ sealed class Screen(
         object NowPlayingScreen : FullScreen(
             name = "Now playing",
             argumentList = listOf(
-                ScreenArg(TRACK_ID, ArgType.STRING)
+                ScreenArg(TRACK, ArgType.STRING)
             )
         )
     }
@@ -69,7 +69,7 @@ sealed class Screen(
             return screen
         }
 
-        const val TRACK_ID = "trackID"
+        const val TRACK = "track"
 
     }
 }

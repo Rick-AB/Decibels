@@ -2,7 +2,7 @@ package com.rickinc.decibels.data
 
 import android.content.Context
 import android.provider.MediaStore
-import com.rickinc.decibels.data.local.device.DeviceDataSource
+import com.rickinc.decibels.data.datasource.local.device.DeviceDataSource
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.util.ContentProviderLiveData
 

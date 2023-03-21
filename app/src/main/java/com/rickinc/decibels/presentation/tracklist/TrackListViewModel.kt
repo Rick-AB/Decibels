@@ -49,7 +49,7 @@ class TrackListViewModel @Inject constructor(
                     _uiState.update { TrackListState.DataLoaded(tracks, tracksAsMediaItems) }
                 },
                 onFailure = { error ->
-                    _uiState.update { TrackListState.Error(error.errorMessage) }
+                    _uiState.update { TrackListState.Error(error.message) }
                 }
             )
         }

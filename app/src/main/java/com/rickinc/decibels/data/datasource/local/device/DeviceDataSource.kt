@@ -1,4 +1,4 @@
-package com.rickinc.decibels.data.local.device
+package com.rickinc.decibels.data.datasource.local.device
 
 import android.content.ContentUris
 import android.content.Context
@@ -20,7 +20,6 @@ import java.io.IOException
 class DeviceDataSource(
     private val context: Context,
 ) {
-
     @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun getDeviceAudioFiles(): List<Track> {
         return withContext(Dispatchers.IO) {
@@ -68,7 +67,6 @@ class DeviceDataSource(
                     )
                     val mimeType = MimeTypeMap.getSingleton()
                         .getExtensionFromMimeType(context.contentResolver.getType(contentUri))
-
                     if (mimeType == TrackConverter.MP3) {
                         list.add(
                             Track(

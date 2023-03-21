@@ -9,7 +9,9 @@ import android.net.Uri
 import android.os.Handler
 import android.provider.Settings
 import android.widget.Toast
+import androidx.annotation.ColorInt
 import androidx.annotation.StringRes
+import androidx.core.graphics.ColorUtils
 
 fun Context.openAppSettings() {
     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
@@ -50,3 +52,6 @@ fun ContentResolver.registerObserver(
     registerContentObserver(uri, true, contentObserver)
     return contentObserver
 }
+
+fun @receiver:ColorInt Int.isDark(): Boolean =
+    ColorUtils.calculateLuminance(this) < 0.5

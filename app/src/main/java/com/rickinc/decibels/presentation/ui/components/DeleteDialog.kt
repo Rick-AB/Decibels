@@ -15,7 +15,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.rickinc.decibels.R
 import com.rickinc.decibels.presentation.ui.theme.secondaryVariant
-import com.rickinc.decibels.presentation.util.clickable
 
 @Composable
 fun DeleteDialog(

@@ -1,7 +1,9 @@
 package com.rickinc.decibels.di
 
-import com.rickinc.decibels.data.local.database.DecibelsDatabase
-import com.rickinc.decibels.data.local.device.DeviceDataSource
+import com.rickinc.decibels.data.datasource.local.database.DecibelsDatabase
+import com.rickinc.decibels.data.datasource.local.device.DeviceDataSource
+import com.rickinc.decibels.data.datasource.network.LyricsApiService
+import com.rickinc.decibels.data.datasource.network.LyricsScraper
 import com.rickinc.decibels.data.repository.AudioRepositoryImpl
 import com.rickinc.decibels.domain.repository.AudioRepository
 import dagger.Module
@@ -16,8 +18,9 @@ class RepositoryModule {
     @Provides
     fun provideAudioRepository(
         deviceDataSource: DeviceDataSource,
+        lyricsApiService: LyricsApiService,
         decibelsDatabase: DecibelsDatabase
     ): AudioRepository {
-        return AudioRepositoryImpl(deviceDataSource, decibelsDatabase)
+        return AudioRepositoryImpl(deviceDataSource, lyricsApiService, decibelsDatabase)
     }
 }

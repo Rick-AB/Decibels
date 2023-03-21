@@ -1,4 +1,4 @@
-package com.rickinc.decibels.data.local.database
+package com.rickinc.decibels.data.datasource.local.database
 
 import androidx.room.Dao
 import androidx.room.Insert

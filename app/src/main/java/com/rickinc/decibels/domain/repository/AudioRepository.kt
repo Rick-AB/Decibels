@@ -11,4 +11,5 @@ interface AudioRepository {
     suspend fun updateNowPlaying(nowPlaying: NowPlaying)
     fun getNowPlayingFlow(): Flow<NowPlaying?>
     fun deleteTrack(context: Context, track: Track)
+    suspend fun getLyricsForTrack(context: Context, track: Track): Result<String>
 }

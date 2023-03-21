@@ -1,5 +1,6 @@
 package com.rickinc.decibels.presentation
 
+import android.net.Uri
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,11 @@ import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.rickinc.decibels.domain.model.Track
+import com.rickinc.decibels.domain.util.UriTypeAdapter
+import com.rickinc.decibels.presentation.navigation.Screen
 import com.rickinc.decibels.presentation.nowplaying.NowPlayingScreen
 import com.rickinc.decibels.presentation.tracklist.TrackListScreen
 
@@ -43,7 +49,7 @@ fun ScreenContent(navController: NavHostController) {
             TrackListScreen { track ->
                 navController.navigate(
                     Screen.FullScreen.NowPlayingScreen.buildRoute(
-                        listOf(track.trackId.toString())
+                        listOf(track.toString())
                     )
                 )
             }
@@ -52,8 +58,14 @@ fun ScreenContent(navController: NavHostController) {
         composable(
             Screen.FullScreen.NowPlayingScreen.route(),
             arguments = Screen.FullScreen.NowPlayingScreen.getArguments()
-        ) {
-            NowPlayingScreen {
+        ) { navBackStackEntry ->
+            val gson = GsonBuilder().registerTypeHierarchyAdapter(Uri::class.java, UriTypeAdapter())
+                .create()
+
+            val track = navBackStackEntry.arguments?.getString(Screen.TRACK)
+                ?.let { gson.fromJson(it, Track::class.java) }!!
+
+            NowPlayingScreen(track) {
                 systemController.setStatusBarColor(primary)
                 navController.popBackStack()
             }
