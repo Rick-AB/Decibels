@@ -17,13 +17,14 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -226,11 +227,9 @@ private fun LyricsViewLine(
     activeAlpha: Float = 1f,
     inactiveAlpha: Float = 0.35f,
 ) {
-    var scale by remember { mutableStateOf(if (isActive) activeScale else inactiveScale) }
-    var alpha by remember { mutableStateOf(if (isActive) activeAlpha else inactiveAlpha) }
-
+    var scale by remember { mutableFloatStateOf(if (isActive) activeScale else inactiveScale) }
+    var alpha by remember { mutableFloatStateOf(if (isActive) activeAlpha else inactiveAlpha) }
     val interactionSource = remember { MutableInteractionSource() }
-    val indication = rememberRipple(color = contentColor)
 
     LaunchedEffect(isActive) {
         launch {
@@ -264,7 +263,7 @@ private fun LyricsViewLine(
             .fillMaxWidth()
             .offset { IntOffset(0, offsetYProvider()) }
             .clip(MaterialTheme.shapes.medium)
-            .indication(interactionSource, indication)
+            .indication(interactionSource, ripple())
             .pointerInput(interactionSource) {
                 detectTapGestures(
                     onPress = {

@@ -4,14 +4,31 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.with
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -30,7 +47,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.exception.ErrorHolder
-import com.rickinc.decibels.presentation.nowplaying.*
+import com.rickinc.decibels.presentation.nowplaying.LyricsViewState
+import com.rickinc.decibels.presentation.nowplaying.NowPlayingBottomSheetState
+import com.rickinc.decibels.presentation.nowplaying.NowPlayingEvent
+import com.rickinc.decibels.presentation.nowplaying.NowPlayingState
+import com.rickinc.decibels.presentation.nowplaying.NowPlayingViewModel
+import com.rickinc.decibels.presentation.nowplaying.rememberLyricsViewState
 import com.rickinc.decibels.presentation.ui.components.LottieLoading
 import com.rickinc.decibels.presentation.util.formatTrackDuration
 import com.rickinc.decibels.presentation.util.isDark
@@ -73,14 +95,16 @@ fun NowPlayingBottomSheetContent(
             AnimatedContent(
                 targetState = bottomSheetUiState,
                 transitionSpec = {
-                    fadeIn(tween(500)) with fadeOut(tween(500))
+                    fadeIn(tween(500)) togetherWith fadeOut(tween(500))
                 },
-                modifier = Modifier.align(Alignment.Center)
+                modifier = Modifier.align(Alignment.Center),
+                label = "lyrics"
             ) {
                 when (it) {
                     NowPlayingBottomSheetState.Loading -> {
                         LottieLoading(modifier = Modifier)
                     }
+
                     is NowPlayingBottomSheetState.LyricsLoaded -> {
                         NowPlayingBottomSheetLoaded(
                             uiState = it,
@@ -89,6 +113,7 @@ fun NowPlayingBottomSheetContent(
                             sheetOffsetY = sheetOffsetY
                         )
                     }
+
                     is NowPlayingBottomSheetState.ErrorLoadingLyrics -> {
                         LyricsErrorView(
                             it.error,
@@ -261,7 +286,7 @@ fun PlaybackControls(
                     .size(56.dp)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
-                        indication = rememberRipple(bounded = false),
+                        indication = ripple(bounded = false),
                         onClick = {
                             if (state.isPlaying) {
                                 state.pause()

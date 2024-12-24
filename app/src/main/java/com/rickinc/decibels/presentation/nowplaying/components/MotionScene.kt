@@ -2,8 +2,16 @@ package com.rickinc.decibels.presentation.nowplaying.components
 
 import android.annotation.SuppressLint
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.*
-import com.rickinc.decibels.presentation.nowplaying.*
+import androidx.constraintlayout.compose.ConstraintSetRef
+import androidx.constraintlayout.compose.Dimension
+import androidx.constraintlayout.compose.MotionScene
+import androidx.constraintlayout.compose.RelativePosition
+import androidx.constraintlayout.compose.Visibility
+import com.rickinc.decibels.presentation.nowplaying.NowPlayingLayout
+import com.rickinc.decibels.presentation.nowplaying.fontSize
+import com.rickinc.decibels.presentation.nowplaying.maxLines
+import com.rickinc.decibels.presentation.nowplaying.showBackground
+import com.rickinc.decibels.presentation.nowplaying.textAlign
 import com.rickinc.decibels.presentation.ui.theme.Typography
 
 @SuppressLint("Range")
@@ -350,21 +358,18 @@ fun motionScene(): MotionScene {
                     percentWidth = 0F
                 }
                 frame(50) {
-                    type = RelativePosition.Delta
                     percentX = 1F
                     percentY = 1F
                     percentHeight = 1F
                     percentWidth = 1F
                 }
                 frame(75) {
-                    type = RelativePosition.Delta
                     percentX = 1F
                     percentY = 1F
                     percentHeight = 1F
                     percentWidth = 1F
                 }
                 frame(100) {
-                    type = RelativePosition.Delta
                     percentX = 1F
                     percentY = 1F
                     percentHeight = 1F

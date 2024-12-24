@@ -6,11 +6,12 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
     namespace = "com.rickinc.decibels"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.rickinc.decibels"
@@ -86,7 +87,6 @@ dependencies {
     implementation(libs.google.material)
 
     // accompanist
-    implementation(libs.accompanist.navigation.animation)
     implementation(libs.accompanist.systemuicontroller)
 
     // hilt

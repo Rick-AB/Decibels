@@ -13,8 +13,8 @@ plugins {
 allprojects {
     tasks.withType(KotlinCompile::class.java).all {
         compilerOptions {
-            freeCompilerArgs.get().plus(
-                arrayOf(
+            freeCompilerArgs.addAll(
+                listOf(
                     "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
                     "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
                     "-Xopt-in=kotlinx.coroutines.InternalCoroutinesApi",

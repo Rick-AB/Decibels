@@ -14,7 +14,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.with
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -23,11 +23,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.DropdownMenu
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,7 +49,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -133,16 +132,16 @@ fun NowPlayingScreen(
     val hasThumbnail = trackState.hasThumbnail
     val trackThumbnail = trackState.thumbnail!!
     val controller = LocalController.current
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val window = (LocalContext.current as ComponentActivity).window
     val systemUiController = rememberSystemUiController()
     val scaffoldState = rememberBottomSheetScaffoldState()
 
     var backgroundColor by remember { mutableStateOf(primaryBackgroundColor) }
-    val animatedBackgroundColor by animateColorAsState(targetValue = backgroundColor)
+    val animatedBackgroundColor by animateColorAsState(targetValue = backgroundColor, label = "animate background color")
 
     var color by remember { mutableStateOf(secondaryBackgroundColor) }
-    val animatedOnBackgroundColor by animateColorAsState(targetValue = color)
+    val animatedOnBackgroundColor by animateColorAsState(targetValue = color, label = "animate color")
 
     LaunchedEffect(key1 = trackThumbnail) {
         if (hasThumbnail) {
@@ -187,9 +186,9 @@ fun NowPlayingScreen(
         containerColor = animatedBackgroundColor,
         sheetContent = {
             NowPlayingBottomSheetContent(
-                uiState,
-                nowPlayingViewModel,
-                animatedBackgroundColor,
+                nowPlayingUiState = uiState,
+                nowPlayingViewModel = nowPlayingViewModel,
+                animatedBackgroundColor = animatedBackgroundColor,
                 isCollapsed = scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden,
             ) { scaffoldState.currentFraction }
         },
@@ -220,8 +219,9 @@ fun NowPlayingScreen(
             val titleFontSize = titleProperties.fontSize(fontSize)
             AnimatedContent(
                 targetState = trackState.trackTitle,
-                transitionSpec = { fadeIn(tween(500)) with fadeOut(tween(500)) },
-                modifier = Modifier.layoutId(NowPlayingLayout.TITLE)
+                transitionSpec = { fadeIn(tween(500)) togetherWith fadeOut(tween(500)) },
+                modifier = Modifier.layoutId(NowPlayingLayout.TITLE),
+                label = "animate track name"
             ) { trackName ->
                 Text(
                     text = trackName,
@@ -236,8 +236,9 @@ fun NowPlayingScreen(
             val artistFontSize = customProperties(NowPlayingLayout.ARTIST.name).fontSize(fontSize)
             AnimatedContent(
                 targetState = trackState.artist,
-                transitionSpec = { fadeIn(tween(500)) with fadeOut(tween(500)) },
-                modifier = Modifier.layoutId(NowPlayingLayout.ARTIST)
+                transitionSpec = { fadeIn(tween(500)) togetherWith fadeOut(tween(500)) },
+                modifier = Modifier.layoutId(NowPlayingLayout.ARTIST),
+                label = "animate artist"
             ) { artist ->
                 Text(
                     text = artist,
@@ -337,7 +338,6 @@ fun NowPlayingScreen(
     }
 }
 
-
 @Composable
 fun NowPlayingControlButton(
     @DrawableRes iconRes: Int,
@@ -380,9 +380,10 @@ fun NowPlayingControlButton(
             AnimatedContent(
                 targetState = iconRes,
                 transitionSpec = {
-                    slideInVertically(tween()) { fullHeight -> -fullHeight * 2 } with
+                    slideInVertically(tween()) { fullHeight -> -fullHeight * 2 } togetherWith
                             slideOutVertically(tween()) { fullHeight -> fullHeight * 2 }
                 },
+                label = "animate control button",
             ) { res ->
                 Icon(
                     painter = painterResource(id = res),
@@ -479,7 +480,7 @@ private fun NowPlayingOverFlowMenu(
 private fun BackArrow(onClick: () -> Unit) {
     IconButton(onClick = onClick) {
         Icon(
-            imageVector = Icons.Default.ArrowBack,
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = stringResource(id = R.string.back_arrow)
         )
     }
