@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
             DecibelsTheme(useDarkTheme = true, dynamicColor = false) {
                 CompositionLocalProvider(LocalController provides controller) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        MainActivityLayout()
+                        App()
                     }
                 }
             }

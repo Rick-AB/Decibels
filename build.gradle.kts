@@ -1,25 +1,20 @@
-buildscript {
-    ext {
-        compose_version = '1.3.3'
-        coroutines_test_version = '1.6.1'
-    }
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-    dependencies {
-        classpath 'com.google.dagger:hilt-android-gradle-plugin:2.44'
-        classpath 'org.jetbrains.kotlin:kotlin-serialization:1.8.0'
-    }
-}// Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    id 'com.android.application' version '8.0.0' apply false
-    id 'com.android.library' version '8.0.0' apply false
-    id 'org.jetbrains.kotlin.android' version '1.8.0' apply false
-    id 'com.google.dagger.hilt.android' version '2.44' apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.jetbrainsKotlinAndroid) apply false
+    alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.room) apply false
+    alias(libs.plugins.compose.compiler) apply false
 }
 
 allprojects {
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-        kotlinOptions {
-            freeCompilerArgs += [
+    tasks.withType(KotlinCompile::class.java).all {
+        compilerOptions {
+            freeCompilerArgs.get().plus(
+                arrayOf(
                     "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
                     "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
                     "-Xopt-in=kotlinx.coroutines.InternalCoroutinesApi",
@@ -35,9 +30,8 @@ allprojects {
                     "-Xopt-in=androidx.compose.material3.ExperimentalMaterial3Api",
                     "-Xopt-in=androidx.lifecycle.compose.ExperimentalLifecycleComposeApi",
                     "-Xopt-in=androidx.constraintlayout.compose.ExperimentalMotionApi"
-            ]
+                )
+            )
         }
     }
 }
-
-dependencies

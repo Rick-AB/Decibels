@@ -14,7 +14,6 @@ import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.util.UriTypeAdapter
@@ -23,7 +22,7 @@ import com.rickinc.decibels.presentation.nowplaying.NowPlayingScreen
 import com.rickinc.decibels.presentation.tracklist.TrackListScreen
 
 @Composable
-fun MainActivityLayout() {
+fun App() {
     val navController = rememberAnimatedNavController()
 
     Scaffold {
