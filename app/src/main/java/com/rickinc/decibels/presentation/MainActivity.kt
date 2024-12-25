@@ -25,10 +25,10 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.rickinc.decibels.domain.service.DecibelPlaybackService
-import com.rickinc.decibels.presentation.nowplaying.NowPlayingEvent
-import com.rickinc.decibels.presentation.nowplaying.NowPlayingViewModel
-import com.rickinc.decibels.presentation.ui.theme.DecibelsTheme
-import com.rickinc.decibels.presentation.ui.theme.LocalController
+import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingEvent
+import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingViewModel
+import com.rickinc.decibels.presentation.theme.DecibelsTheme
+import com.rickinc.decibels.presentation.theme.LocalController
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

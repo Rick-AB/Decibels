@@ -1,8 +1,6 @@
 package com.rickinc.decibels.presentation.util
 
 import android.util.Patterns
-import androidx.compose.material.BottomSheetScaffoldState
-import androidx.compose.material.BottomSheetValue
 import com.rickinc.decibels.data.datasource.network.LyricsScraper.Companion.clearRegex
 import com.rickinc.decibels.data.datasource.network.LyricsScraper.Companion.clearSpecialCharactersAndURL
 import com.rickinc.decibels.data.datasource.network.LyricsScraper.Companion.clearTrackExtras
