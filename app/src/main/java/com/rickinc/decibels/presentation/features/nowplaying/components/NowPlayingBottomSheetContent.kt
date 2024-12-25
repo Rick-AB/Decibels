@@ -78,7 +78,7 @@ fun NowPlayingBottomSheetContent(
         )
     }
 
-    LaunchedEffect(key1 = nowPlayingUiState.track.trackId) {
+    LaunchedEffect(key1 = nowPlayingUiState.track.id) {
         actionGetTrackLyrics()
     }
 

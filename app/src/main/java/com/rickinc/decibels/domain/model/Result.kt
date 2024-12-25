@@ -24,7 +24,7 @@ sealed class Result<out R> {
         if (this is Error) onFailure(this.error)
     }
 
-    val Result<*>.succeeded
+    val Result<*>.isSuccess
         get() = this is Success && data != null
 
     fun <T> Result<T>.successOr(fallback: T): T {

@@ -10,8 +10,8 @@ import com.rickinc.decibels.domain.util.UriTypeAdapter
 @Entity
 data class Track(
     @PrimaryKey(autoGenerate = false)
-    val trackId: Long,
-    val trackTitle: String,
+    val id: Long,
+    val title: String,
     val trackLength: Int,
     val artist: String,
     val albumId: Long,

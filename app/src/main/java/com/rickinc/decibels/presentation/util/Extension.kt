@@ -17,5 +17,5 @@ fun Track.cleanTrackInfo(): String {
     fun concatInfo(info: String): String {
         return info.replace(clearRegex, " ").trim().replace(" ", "+")
     }
-    return concatInfo(cleanInfo(this.trackTitle) + " " + cleanInfo(this.artist))
+    return concatInfo(cleanInfo(this.title) + " " + cleanInfo(this.artist))
 }

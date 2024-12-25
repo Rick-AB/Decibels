@@ -17,14 +17,16 @@ import com.rickinc.decibels.presentation.util.getRealPathFromURI
 import com.rickinc.decibels.presentation.util.showShortToast
 import java.io.File
 
-class TrackListMenuViewModel (
+class TrackListMenuViewModel(
     private val ringtoneUtil: RingtoneUtil,
     private val audioRepository: AudioRepository
 ) : ViewModel() {
 
-    fun deleteTrack(context: Context, track: Track): IntentSenderRequest? {
+    fun deleteTrack(context: Context, trackId: Long, contentUri: Uri?): IntentSenderRequest? {
+        if (contentUri == null) return null
+
         try {
-            audioRepository.deleteTrack(context, track)
+            audioRepository.deleteTrack(context, trackId, contentUri)
         } catch (securityException: SecurityException) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val recoverableSecurityException =
@@ -40,8 +42,8 @@ class TrackListMenuViewModel (
         return null
     }
 
-    fun shareFile(context: Context, track: Track) {
-        val trackPath = track.contentUri?.let {
+    fun shareFile(context: Context, contentUri: Uri?) {
+        val trackPath = contentUri?.let {
             getRealPathFromURI(context, it)
         } ?: return
         val file = File(trackPath)
@@ -63,8 +65,8 @@ class TrackListMenuViewModel (
         }
     }
 
-    fun setAsRingtone(context: Context, track: Track) {
-        val trackPath = track.contentUri?.let {
+    fun setAsRingtone(context: Context, contentUri: Uri?) {
+        val trackPath = contentUri?.let {
             getRealPathFromURI(context, it)
         } ?: return
         val file = File(trackPath)

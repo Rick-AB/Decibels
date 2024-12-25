@@ -29,16 +29,16 @@ class NowPlayingViewModel(private val audioRepository: AudioRepository) : ViewMo
             errorFlow
         ) { nowPlaying, progress, playbackState, exception ->
             when {
-                nowPlaying != null -> {
-                    NowPlayingState.TrackLoaded(
-                        nowPlaying.track,
-                        nowPlaying.isPlaying,
-                        nowPlaying.repeatMode,
-                        nowPlaying.shuffleActive,
-                        progress,
-                        playbackState
-                    )
-                }
+//                nowPlaying != null -> {
+//                    NowPlayingState.TrackLoaded(
+//                        nowPlaying.track,
+//                        nowPlaying.isPlaying,
+//                        nowPlaying.repeatMode,
+//                        nowPlaying.shuffleActive,
+//                        progress,
+//                        playbackState
+//                    )
+//                }
 
                 exception != null -> {
                     val errorMessage = exception.localizedMessage ?: ""

@@ -79,7 +79,7 @@ class SongsListVerification(
         tracks.forEach { track ->
             rule.onNodeWithContentDescription(trackListContentDesc)
                 .onChildren()
-                .assertAny(hasText(track.trackTitle))
+                .assertAny(hasText(track.title))
 
             rule.onNodeWithContentDescription(trackListContentDesc)
                 .onChildren()

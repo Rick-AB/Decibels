@@ -120,8 +120,8 @@ fun NowPlayingScreen(
     var useUiState by remember { mutableStateOf(false) }
 
     // initialize trackState with the selected track passed to the screen bcuz track from uiState can hold stale data initially
-    val trackState by remember(track.trackId) {
-        if (selectedTrack.trackId == track.trackId && !useUiState) useUiState = true
+    val trackState by remember(track.id) {
+        if (selectedTrack.id == track.id && !useUiState) useUiState = true
 
         if (useUiState) mutableStateOf(track)
         else mutableStateOf(selectedTrack)
@@ -218,7 +218,7 @@ fun NowPlayingScreen(
             val singleLineProperty = titleProperties.int(maxLines)
             val titleFontSize = titleProperties.fontSize(fontSize)
             AnimatedContent(
-                targetState = trackState.trackTitle,
+                targetState = trackState.title,
                 transitionSpec = { fadeIn(tween(500)) togetherWith fadeOut(tween(500)) },
                 modifier = Modifier.layoutId(NowPlayingLayout.TITLE),
                 label = "animate track name"

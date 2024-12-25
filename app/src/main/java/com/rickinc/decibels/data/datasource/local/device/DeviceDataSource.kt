@@ -14,7 +14,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.util.TrackConverter
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import java.io.IOException
 
 class DeviceDataSource(private val context: Context) {
@@ -68,8 +72,8 @@ class DeviceDataSource(private val context: Context) {
                     if (mimeType == TrackConverter.MP3) {
                         list.add(
                             Track(
-                                trackId = id,
-                                trackTitle = title,
+                                id = id,
+                                title = title,
                                 trackLength = duration,
                                 artist = artist,
                                 albumId = albumId,
@@ -86,13 +90,11 @@ class DeviceDataSource(private val context: Context) {
         }
     }
 
-    fun deleteAudioFileFromDevice(context: Context, track: Track) {
-        if (track.contentUri == null) return
-
+    fun deleteAudioFileFromDevice(context: Context, trackId: Long, contentUri: Uri) {
         context.contentResolver.delete(
-            track.contentUri,
+            contentUri,
             "${MediaStore.Audio.Media._ID} = ?",
-            arrayOf(track.trackId.toString())
+            arrayOf(trackId.toString())
         )
     }
 

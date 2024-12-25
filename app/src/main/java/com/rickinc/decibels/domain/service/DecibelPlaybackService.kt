@@ -105,10 +105,10 @@ class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
         val isPlaying = player.isPlaying
         val repeatMode = player.repeatMode
         val shuffleActive = player.shuffleModeEnabled
-        val nowPlaying = NowPlaying(0, track, isPlaying, repeatMode, shuffleActive)
-        scope.launch {
-            audioRepository.updateNowPlaying(nowPlaying)
-        }
+//        val nowPlaying = NowPlaying(0, track, isPlaying, repeatMode, shuffleActive)
+//        scope.launch {
+//            audioRepository.updateNowPlaying(nowPlaying)
+//        }
     }
 
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)

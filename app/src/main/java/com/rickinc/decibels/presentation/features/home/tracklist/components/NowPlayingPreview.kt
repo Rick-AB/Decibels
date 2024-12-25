@@ -66,7 +66,7 @@ fun NowPlayingPreview(
                 ) { track ->
                     Column {
                         Text(
-                            text = track.trackTitle,
+                            text = track.title,
                             style = Typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1

@@ -1,6 +1,7 @@
 package com.rickinc.decibels.data.repository
 
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
@@ -21,7 +22,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import okhttp3.MultipartBody
-import retrofit2.HttpException
 
 
 class AudioRepositoryImpl(
@@ -46,8 +46,8 @@ class AudioRepositoryImpl(
 
     override fun getNowPlayingFlow(): Flow<NowPlaying?> = dao.getNowPlaying().distinctUntilChanged()
 
-    override fun deleteTrack(context: Context, track: Track) {
-        deviceDataSource.deleteAudioFileFromDevice(context, track)
+    override fun deleteTrack(context: Context, trackId: Long, contentUri: Uri) {
+        deviceDataSource.deleteAudioFileFromDevice(context, trackId, contentUri)
     }
 
     override suspend fun getLyricsForTrack(context: Context, track: Track): Result<String> {
@@ -65,7 +65,7 @@ class AudioRepositoryImpl(
         val request = UploadStreamRequestBody("audio/*", stream)
         val filePart = MultipartBody.Part.createFormData(
             "file",
-            "${track.trackTitle}.$mimeType",
+            "${track.title}.$mimeType",
             request
         )
         val response = RequestHandler.safeApiCall(Dispatchers.IO) {

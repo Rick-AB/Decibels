@@ -1,6 +1,7 @@
 package com.rickinc.decibels.tracklist
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.rickinc.decibels.di.RepositoryModule
 import com.rickinc.decibels.domain.exception.ErrorHolder
@@ -70,7 +71,7 @@ class TrackListErrorTest {
             TODO("Not yet implemented")
         }
 
-        override fun deleteTrack(context: Context, track: Track) {
+        override fun deleteTrack(context: Context, trackId: Long, contentUri: Uri) {
             TODO("Not yet implemented")
         }
 

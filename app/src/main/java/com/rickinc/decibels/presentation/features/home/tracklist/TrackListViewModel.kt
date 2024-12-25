@@ -9,8 +9,14 @@ import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.domain.util.TrackConverter
 import com.rickinc.decibels.presentation.util.registerObserver
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -23,17 +29,44 @@ class TrackListViewModel(
     private val _nowPlayingTrack = MutableStateFlow<Track?>(null)
     val nowPlayingTrack = _nowPlayingTrack.asStateFlow()
 
-    private val _uiState = MutableStateFlow<TrackListState>(TrackListState.Loading)
-    val uiState = _uiState.asStateFlow()
+    private val tracksFlow = MutableStateFlow(emptyList<Track>())
+    private val mediaItemsFlow = tracksFlow.mapLatest { tracks ->
+        trackConverter.toMediaItems(tracks)
+    }.flowOn(Dispatchers.IO)
 
-    private val tracks = mutableListOf<Track>()
+    val uiState: StateFlow<TrackListState> = tracksFlow.mapLatest { tracks ->
+        val trackItems = tracks.map { track ->
+            TrackItem(
+                id = track.id,
+                title = track.title,
+                trackLength = track.trackLength,
+                artist = track.artist,
+                albumId = track.albumId,
+                contentUri = track.contentUri,
+                mediaItem = trackConverter.trackToMediaItem(track)
+            )
+        }
+        TrackListState.Content(trackItems)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_00L),
+        initialValue = TrackListState.Loading
+    )
+
     private var contentObserver: ContentObserver
 
     init {
-        contentObserver =
-            application.contentResolver.registerObserver(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI) {
+        contentObserver = application
+            .contentResolver
+            .registerObserver(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI) {
                 getAudioFiles()
             }
+    }
+
+    fun onEvent(event: TrackListEvent) {
+        when (event) {
+            is TrackListEvent.PlayTrack -> {}
+        }
     }
 
     fun getAudioFiles() {
@@ -41,12 +74,7 @@ class TrackListViewModel(
             val result = audioRepo.getAudioFiles()
             result.fold(
                 onSuccess = { tracks ->
-                    val tracksAsMediaItems = trackConverter.toMediaItems(tracks)
-                    this@TrackListViewModel.tracks.addAll(tracks)
-                    _uiState.update { TrackListState.DataLoaded(tracks, tracksAsMediaItems) }
-                },
-                onFailure = { error ->
-                    _uiState.update { TrackListState.Error(error.message) }
+                    tracksFlow.update { tracks }
                 }
             )
         }

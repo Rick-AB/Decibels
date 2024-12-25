@@ -8,7 +8,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.rickinc.decibels.domain.model.Track
 
-class TrackConverter{
+class TrackConverter {
 
     companion object {
         const val CONTENT_URI_KEY = "content_uri"
@@ -19,7 +19,7 @@ class TrackConverter{
         const val HAS_THUMBNAIL = "has_thumbnail"
     }
 
-    private fun toMediaItem(track: Track): MediaItem {
+    fun trackToMediaItem(track: Track): MediaItem {
         val extra = Bundle()
         extra.putString(CONTENT_URI_KEY, track.contentUri.toString())
         extra.putInt(TRACK_LENGTH_KEY, track.trackLength)
@@ -28,14 +28,14 @@ class TrackConverter{
         extra.putParcelable(THUMBNAIL_KEY, track.thumbnail)
         extra.putBoolean(HAS_THUMBNAIL, track.hasThumbnail)
 
-        val mediaMetadata =
-            MediaMetadata.Builder().setDisplayTitle(track.trackTitle)
-                .setTitle(track.trackTitle)
-                .setArtist(track.artist)
-                .setExtras(extra)
-                .build()
+        val mediaMetadata = MediaMetadata.Builder()
+            .setDisplayTitle(track.title)
+            .setTitle(track.title)
+            .setArtist(track.artist)
+            .setExtras(extra)
+            .build()
 
-        val trackId = track.trackId.toString()
+        val trackId = track.id.toString()
         return MediaItem.Builder()
             .setMediaMetadata(mediaMetadata)
             .setMediaId(trackId)
@@ -43,7 +43,7 @@ class TrackConverter{
     }
 
     fun toMediaItems(tracks: List<Track>): List<MediaItem> {
-        return tracks.map { toMediaItem(it) }
+        return tracks.map { trackToMediaItem(it) }
     }
 
     @Suppress("DEPRECATION")

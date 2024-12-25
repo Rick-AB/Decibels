@@ -1,6 +1,7 @@
 package com.rickinc.decibels.data.repository
 
 import android.content.Context
+import android.net.Uri
 import com.rickinc.decibels.domain.exception.ErrorHolder
 import com.rickinc.decibels.domain.model.NowPlaying
 import com.rickinc.decibels.domain.model.Result
@@ -23,7 +24,7 @@ class TestAudioRepository : AudioRepository {
         TODO("Not yet implemented")
     }
 
-    override fun deleteTrack(context: Context, track: Track) {
+    override fun deleteTrack(context: Context, trackId: Long, contentUri: Uri) {
         TODO("Not yet implemented")
     }
 
