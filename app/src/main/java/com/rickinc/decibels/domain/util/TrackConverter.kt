@@ -7,7 +7,6 @@ import android.os.Bundle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.rickinc.decibels.domain.model.Track
-import timber.log.Timber
 import javax.inject.Inject
 
 class TrackConverter @Inject constructor() {

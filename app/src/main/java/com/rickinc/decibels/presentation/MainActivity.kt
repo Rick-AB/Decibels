@@ -29,9 +29,7 @@ import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingEvent
 import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingViewModel
 import com.rickinc.decibels.presentation.theme.DecibelsTheme
 import com.rickinc.decibels.presentation.theme.LocalController
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private lateinit var player: Player
     private lateinit var decibelService: DecibelPlaybackService

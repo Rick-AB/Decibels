@@ -94,6 +94,11 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
 
+    // koin
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.bundles.koin.compose)
+
     implementation(libs.navigation.compose)
 
     // timber

@@ -1,6 +1,7 @@
 package com.rickinc.decibels.presentation.features.tracklist
 
 import android.Manifest
+import android.content.SharedPreferences
 import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -40,7 +41,6 @@ import com.rickinc.decibels.presentation.components.DefaultTopAppBar
 import com.rickinc.decibels.presentation.components.accomponistpermision.findActivity
 import com.rickinc.decibels.presentation.components.accomponistpermision.isPermissionPermanentlyDenied
 import com.rickinc.decibels.presentation.components.accomponistpermision.setShouldShowRationaleStatus
-import com.rickinc.decibels.presentation.components.requireSharedPreferencesEntryPoint
 import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingState
 import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingViewModel
 import com.rickinc.decibels.presentation.features.tracklist.components.InfoText
@@ -50,9 +50,11 @@ import com.rickinc.decibels.presentation.features.tracklist.components.TrackItem
 import com.rickinc.decibels.presentation.theme.LocalController
 import com.rickinc.decibels.presentation.util.hasPermission
 import com.rickinc.decibels.presentation.util.openAppSettings
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun TrackListScreen(actionNavigateToNowPlayingScreen: (Track) -> Unit) {
+fun TrackListScreen(goToNowPlayingScreen: (Track) -> Unit) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = { TrackListTopAppBar() }
@@ -64,7 +66,7 @@ fun TrackListScreen(actionNavigateToNowPlayingScreen: (Track) -> Unit) {
         var hasStoragePermission by remember { mutableStateOf(context.hasPermission(permissionString)) }
         var shouldShowRationale by remember { mutableStateOf(false) }
 
-        val preferences = requireSharedPreferencesEntryPoint().sharedPreferences
+        val preferences = koinInject<SharedPreferences>()
         val isPermanentlyDenied: () -> Boolean =
             { isPermissionPermanentlyDenied(context, preferences, permissionString) }
 
@@ -97,7 +99,7 @@ fun TrackListScreen(actionNavigateToNowPlayingScreen: (Track) -> Unit) {
         }
 
         when {
-            hasStoragePermission -> TrackListBody(padding, actionNavigateToNowPlayingScreen)
+            hasStoragePermission -> TrackListBody(padding, goToNowPlayingScreen)
             shouldShowRationale -> PermissionRequiredBody(isPermanentlyDenied = isPermanentlyDenied()) {
                 shouldShowRationale = false
 
@@ -114,9 +116,8 @@ fun TrackListBody(
     onTrackItemClick: (Track) -> Unit
 ) {
     Box(modifier = Modifier.padding(innerPadding)) {
-        val context = LocalContext.current
-        val viewModel: TrackListViewModel = hiltViewModel(context as ComponentActivity)
-        val nowPlayingViewModel: NowPlayingViewModel = hiltViewModel(context)
+        val viewModel: TrackListViewModel = koinViewModel()
+        val nowPlayingViewModel: NowPlayingViewModel = koinViewModel()
         val trackListScreenState = viewModel.uiState.collectAsStateWithLifecycle().value
         val nowPlayingState = nowPlayingViewModel.uiState.collectAsStateWithLifecycle().value
 
