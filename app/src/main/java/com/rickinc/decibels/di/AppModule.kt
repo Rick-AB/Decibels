@@ -11,6 +11,9 @@ import androidx.room.Room
 import com.rickinc.decibels.data.datasource.local.database.DecibelsDatabase
 import com.rickinc.decibels.data.datasource.local.device.DeviceDataSource
 import com.rickinc.decibels.data.datasource.network.LyricsApiService
+import com.rickinc.decibels.data.datasource.network.LyricsScraper
+import com.rickinc.decibels.domain.util.RingtoneUtil
+import com.rickinc.decibels.domain.util.TrackConverter
 import com.rickinc.decibels.presentation.util.hasPermission
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -21,6 +24,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
@@ -95,4 +102,20 @@ object AppModule {
     interface SharedPreferencesEntryPoint {
         val sharedPreferences: SharedPreferences
     }
+}
+
+val appModule = module {
+    single<Player> {
+        val context = androidContext()
+        val hasWakeLockPermission = context.hasPermission(Manifest.permission.WAKE_LOCK)
+        ExoPlayer.Builder(context)
+            .apply {
+                if (hasWakeLockPermission) setWakeMode(PowerManager.PARTIAL_WAKE_LOCK)
+            }
+            .build()
+    }
+
+    singleOf(::TrackConverter)
+    singleOf(::RingtoneUtil)
+    includes(databaseModule, dataModule, networkModule, viewModelModule)
 }

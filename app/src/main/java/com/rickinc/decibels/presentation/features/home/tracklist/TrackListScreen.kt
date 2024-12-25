@@ -1,9 +1,8 @@
-package com.rickinc.decibels.presentation.features.tracklist
+package com.rickinc.decibels.presentation.features.home.tracklist
 
 import android.Manifest
 import android.content.SharedPreferences
 import android.os.Build
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +27,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -43,11 +41,11 @@ import com.rickinc.decibels.presentation.components.accomponistpermision.isPermi
 import com.rickinc.decibels.presentation.components.accomponistpermision.setShouldShowRationaleStatus
 import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingState
 import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingViewModel
-import com.rickinc.decibels.presentation.features.tracklist.components.InfoText
-import com.rickinc.decibels.presentation.features.tracklist.components.NowPlayingPreview
-import com.rickinc.decibels.presentation.features.tracklist.components.PermissionRequiredBody
-import com.rickinc.decibels.presentation.features.tracklist.components.TrackItem
-import com.rickinc.decibels.presentation.theme.LocalController
+import com.rickinc.decibels.presentation.features.home.tracklist.components.InfoText
+import com.rickinc.decibels.presentation.features.home.tracklist.components.NowPlayingPreview
+import com.rickinc.decibels.presentation.features.home.tracklist.components.PermissionRequiredBody
+import com.rickinc.decibels.presentation.features.home.tracklist.components.TrackItem
+import com.rickinc.decibels.presentation.util.LocalController
 import com.rickinc.decibels.presentation.util.hasPermission
 import com.rickinc.decibels.presentation.util.openAppSettings
 import org.koin.compose.koinInject

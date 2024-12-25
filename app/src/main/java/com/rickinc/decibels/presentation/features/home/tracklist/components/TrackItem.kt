@@ -1,4 +1,4 @@
-package com.rickinc.decibels.presentation.features.tracklist.components
+package com.rickinc.decibels.presentation.features.home.tracklist.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

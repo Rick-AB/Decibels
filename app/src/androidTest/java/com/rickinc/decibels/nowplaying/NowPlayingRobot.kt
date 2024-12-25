@@ -12,7 +12,7 @@ import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.presentation.nowplaying.NowPlayingScreen
 import com.rickinc.decibels.presentation.nowplaying.NowPlayingState
-import com.rickinc.decibels.presentation.theme.LocalController
+import com.rickinc.decibels.presentation.util.LocalController
 import com.rickinc.decibels.presentation.util.formatTrackDuration
 
 fun launchNowPlayingScreen(

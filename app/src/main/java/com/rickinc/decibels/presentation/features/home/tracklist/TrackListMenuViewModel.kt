@@ -1,4 +1,4 @@
-package com.rickinc.decibels.presentation.features.tracklist
+package com.rickinc.decibels.presentation.features.home.tracklist
 
 import android.app.RecoverableSecurityException
 import android.content.Context

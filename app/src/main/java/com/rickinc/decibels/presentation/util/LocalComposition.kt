@@ -1,8 +1,7 @@
-package com.rickinc.decibels.presentation.theme
+package com.rickinc.decibels.presentation.util
 
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
 
 val LocalController = staticCompositionLocalOf<MediaController?> {

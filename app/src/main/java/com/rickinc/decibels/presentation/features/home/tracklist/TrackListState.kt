@@ -1,4 +1,4 @@
-package com.rickinc.decibels.presentation.features.tracklist
+package com.rickinc.decibels.presentation.features.home.tracklist
 
 import androidx.media3.common.MediaItem
 import com.rickinc.decibels.domain.model.Track

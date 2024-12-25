@@ -28,7 +28,7 @@ import com.rickinc.decibels.domain.service.DecibelPlaybackService
 import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingEvent
 import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingViewModel
 import com.rickinc.decibels.presentation.theme.DecibelsTheme
-import com.rickinc.decibels.presentation.theme.LocalController
+import com.rickinc.decibels.presentation.util.LocalController
 
 class MainActivity : ComponentActivity() {
     private lateinit var player: Player

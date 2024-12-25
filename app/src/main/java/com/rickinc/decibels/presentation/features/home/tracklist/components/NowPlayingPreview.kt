@@ -1,4 +1,4 @@
-package com.rickinc.decibels.presentation.features.tracklist.components
+package com.rickinc.decibels.presentation.features.home.tracklist.components
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -20,7 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.rickinc.decibels.R
 import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingState
-import com.rickinc.decibels.presentation.theme.LocalController
+import com.rickinc.decibels.presentation.util.LocalController
 import com.rickinc.decibels.presentation.theme.Typography
 import com.rickinc.decibels.presentation.theme.secondaryVariant
 

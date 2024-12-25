@@ -75,7 +75,7 @@ import com.rickinc.decibels.presentation.components.currentFraction
 import com.rickinc.decibels.presentation.features.nowplaying.components.NowPlayingBottomSheetContent
 import com.rickinc.decibels.presentation.features.nowplaying.components.motionScene
 import com.rickinc.decibels.presentation.theme.LightBlack
-import com.rickinc.decibels.presentation.theme.LocalController
+import com.rickinc.decibels.presentation.util.LocalController
 import com.rickinc.decibels.presentation.theme.Typography
 import com.rickinc.decibels.presentation.util.formatTrackDuration
 

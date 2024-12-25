@@ -1,4 +1,4 @@
-package com.rickinc.decibels.presentation.features.tracklist.components
+package com.rickinc.decibels.presentation.features.home.tracklist.components
 
 import android.app.Activity
 import android.content.Context
@@ -35,9 +35,10 @@ import androidx.media3.session.MediaController
 import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.presentation.components.DeleteDialog
-import com.rickinc.decibels.presentation.features.tracklist.TrackListMenuViewModel
+import com.rickinc.decibels.presentation.features.home.tracklist.TrackListMenuViewModel
 import com.rickinc.decibels.presentation.theme.Typography
 import com.rickinc.decibels.presentation.util.showLongToast
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun TrackItemMenu(
@@ -50,9 +51,8 @@ fun TrackItemMenu(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val viewModel: TrackListMenuViewModel = hiltViewModel()
+    val viewModel: TrackListMenuViewModel = koinViewModel()
     val launcher = getDeleteLauncher(track, viewModel::deleteTrack)
-
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     if (showDeleteDialog) {

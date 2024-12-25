@@ -10,7 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.media3.session.MediaController
 import com.rickinc.decibels.domain.model.Lyrics
 import com.rickinc.decibels.domain.parser.LrcLyricsParser
-import com.rickinc.decibels.presentation.theme.LocalController
+import com.rickinc.decibels.presentation.util.LocalController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

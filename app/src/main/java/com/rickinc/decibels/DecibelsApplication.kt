@@ -1,11 +1,7 @@
 package com.rickinc.decibels
 
 import android.app.Application
-import com.rickinc.decibels.di.dataModule
-import com.rickinc.decibels.di.databaseModule
-import com.rickinc.decibels.di.networkModule
-import com.rickinc.decibels.di.playerModule
-import com.rickinc.decibels.di.viewModelModule
+import com.rickinc.decibels.di.appModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import timber.log.Timber
@@ -18,7 +14,7 @@ class DecibelsApplication : Application() {
 
         startKoin {
             androidContext(this@DecibelsApplication)
-            modules(databaseModule, dataModule, networkModule, playerModule, viewModelModule)
+            modules(appModule)
         }
     }
 

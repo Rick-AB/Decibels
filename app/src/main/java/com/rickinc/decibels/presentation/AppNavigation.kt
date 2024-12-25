@@ -8,8 +8,8 @@ import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingRoute
 import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingScreen
-import com.rickinc.decibels.presentation.features.tracklist.TrackListRoute
-import com.rickinc.decibels.presentation.features.tracklist.TrackListScreen
+import com.rickinc.decibels.presentation.features.home.tracklist.TrackListRoute
+import com.rickinc.decibels.presentation.features.home.tracklist.TrackListScreen
 
 @Composable
 fun AppNavigation() {

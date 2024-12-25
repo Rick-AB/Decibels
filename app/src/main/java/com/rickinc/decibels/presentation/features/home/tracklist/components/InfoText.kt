@@ -1,4 +1,4 @@
-package com.rickinc.decibels.presentation.features.tracklist.components
+package com.rickinc.decibels.presentation.features.home.tracklist.components
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
