@@ -8,8 +8,10 @@ import androidx.core.app.NotificationCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.NotificationUtil.IMPORTANCE_HIGH
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -17,10 +19,19 @@ import androidx.media3.ui.PlayerNotificationManager
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.rickinc.decibels.R
+import com.rickinc.decibels.domain.model.NowPlaying
+import com.rickinc.decibels.domain.repository.AudioRepository
+import com.rickinc.decibels.domain.util.TrackConverter
 import com.rickinc.decibels.domain.util.TrackConverter.Companion.CONTENT_URI_KEY
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
+import timber.log.Timber
 
+@UnstableApi
 @AndroidEntryPoint
 class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
 
@@ -28,16 +39,21 @@ class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
         lateinit var binder: Binder
     }
 
-    @Inject
-    lateinit var player: Player
+    val player: Player by inject()
+    private val audioRepository: AudioRepository by inject()
+    private val trackConverter: TrackConverter by inject()
     private var mediaSession: MediaSession? = null
     private lateinit var notificationManager: PlayerNotificationManager
+
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.IO + job)
+
 
     override fun onCreate() {
         super.onCreate()
         initMediaSession()
+        setPlayerListener()
         setPlayerAttributes()
-//        initNotificationManager()
     }
 
     private fun initMediaSession() {
@@ -53,19 +69,61 @@ class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
         (player as ExoPlayer).setAudioAttributes(audioAttributes, true)
     }
 
+    private fun setPlayerListener() {
+        player.addListener(object : Player.Listener {
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                super.onMediaItemTransition(mediaItem, reason)
+                updateNowPlaying()
+            }
+
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                super.onIsPlayingChanged(isPlaying)
+                updateNowPlaying()
+            }
+
+            override fun onRepeatModeChanged(repeatMode: Int) {
+                super.onRepeatModeChanged(repeatMode)
+                updateNowPlaying()
+            }
+
+            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+                super.onShuffleModeEnabledChanged(shuffleModeEnabled)
+                updateNowPlaying()
+            }
+
+            override fun onPlayerErrorChanged(error: PlaybackException?) {
+                super.onPlayerErrorChanged(error)
+                updateNowPlaying()
+            }
+        })
+    }
+
+    private fun updateNowPlaying() {
+        if (player.currentMediaItem == null) return
+
+        val track = trackConverter.toTrack(player.currentMediaItem!!)
+        val isPlaying = player.isPlaying
+        val repeatMode = player.repeatMode
+        val shuffleActive = player.shuffleModeEnabled
+        val nowPlaying = NowPlaying(0, track, isPlaying, repeatMode, shuffleActive)
+        scope.launch {
+            audioRepository.updateNowPlaying(nowPlaying)
+        }
+    }
+
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     private fun initNotificationManager() {
-        val channelId = resources.getString(R.string.appName) + "Music channel"
+        val channelId = resources.getString(R.string.app_name) + "Music channel"
         val notificationID = 1998
         notificationManager = PlayerNotificationManager.Builder(this, notificationID, channelId)
             .setChannelImportance(IMPORTANCE_HIGH)
             .setSmallIconResourceId(R.drawable.ic_baseline_audio_file_24)
-            .setChannelDescriptionResourceId(R.string.appName)
+            .setChannelDescriptionResourceId(R.string.app_name)
             .setNextActionIconResourceId(R.drawable.ic_next)
             .setPreviousActionIconResourceId(R.drawable.ic_previous)
             .setPauseActionIconResourceId(R.drawable.ic_pause)
             .setPlayActionIconResourceId(R.drawable.ic_play)
-            .setChannelNameResourceId(R.string.appName)
+            .setChannelNameResourceId(R.string.app_name)
             .build()
 
         notificationManager.setPlayer(player)
@@ -100,13 +158,19 @@ class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
 
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     override fun onDestroy() {
+        Timber.d("CALLED")
+
+        updateNowPlaying()
         super.onDestroy()
+
         mediaSession?.run {
             player.release()
             release()
             mediaSession = null
             if (::notificationManager.isInitialized) notificationManager.setPlayer(null)
         }
+
+        job.cancel()
     }
 
     inner class LocalBinder : Binder() {

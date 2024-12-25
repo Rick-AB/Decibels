@@ -1,16 +1,18 @@
 package com.rickinc.decibels.domain.model
 
+import com.rickinc.decibels.domain.exception.ErrorHolder
+
 sealed class Result<out R> {
     data class Success<out T>(val data: T) : Result<T>()
-    data class Error(val errorMessage: String) : Result<Nothing>()
+    data class Error(val error: ErrorHolder) : Result<Nothing>()
 
     fun fold(
         onSuccess: (value: R) -> Unit,
-        onFailure: (error: Error) -> Unit = {}
+        onFailure: (error: ErrorHolder) -> Unit = {}
     ) {
         when (this) {
             is Success -> onSuccess(this.data)
-            is Error -> onFailure(this)
+            is Error -> onFailure(this.error)
         }
     }
 
@@ -18,8 +20,8 @@ sealed class Result<out R> {
         if (this is Success) action(this.data)
     }
 
-    fun onError(onFailure: (error: Error) -> Unit = { }) {
-        if (this is Error) onFailure(this)
+    fun onError(onFailure: (error: ErrorHolder) -> Unit = { }) {
+        if (this is Error) onFailure(this.error)
     }
 
     val Result<*>.succeeded

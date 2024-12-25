@@ -1,115 +1,77 @@
 package com.rickinc.decibels.data.repository
 
-import android.content.ContentUris
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Build
-import android.provider.MediaStore
-import android.util.Size
 import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
+import com.rickinc.decibels.R
+import com.rickinc.decibels.data.datasource.local.database.DecibelsDatabase
+import com.rickinc.decibels.data.datasource.local.device.DeviceDataSource
+import com.rickinc.decibels.data.datasource.network.LyricsApiService
+import com.rickinc.decibels.data.util.RequestHandler
+import com.rickinc.decibels.domain.exception.ErrorHolder
+import com.rickinc.decibels.domain.model.NowPlaying
 import com.rickinc.decibels.domain.model.Result
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.AudioRepository
-import com.rickinc.decibels.domain.util.TrackConverter.Companion.MP3
+import com.rickinc.decibels.domain.util.UploadStreamRequestBody
+import com.rickinc.decibels.presentation.util.ConnectionState
+import com.rickinc.decibels.presentation.util.currentConnectivityState
 import kotlinx.coroutines.*
-import java.io.IOException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import okhttp3.MultipartBody
+import retrofit2.HttpException
+
 
 class AudioRepositoryImpl(
-    private val context: Context,
+    private val deviceDataSource: DeviceDataSource,
+    private val lyricsApiService: LyricsApiService,
+    decibelsDatabase: DecibelsDatabase
 ) : AudioRepository {
+    private val dao = decibelsDatabase.dao
+
     @RequiresApi(Build.VERSION_CODES.Q)
     override suspend fun getAudioFiles(): Result<List<Track>> {
         return withContext(Dispatchers.IO) {
-            val list = mutableListOf<Track>()
-            val collection =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-                } else {
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-                }
-            val projection = arrayOf(
-                MediaStore.Audio.Media._ID,
-                MediaStore.Audio.Media.DISPLAY_NAME,
-                MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.TITLE,
-                MediaStore.Audio.Media.ALBUM_ID,
-                MediaStore.Audio.Media.ARTIST,
-            )
-            val selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0"
-            val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
-            val query = context.contentResolver.query(
-                collection,
-                projection,
-                selection,
-                null,
-                sortOrder
-            )
-
-            query?.use { cursor ->
-                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-                val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-                val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-                val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-
-                while (cursor.moveToNext()) {
-                    val id = cursor.getLong(idColumn)
-                    val duration = cursor.getInt(durationColumn)
-                    val title = cursor.getString(titleColumn)
-                    val artist = cursor.getString(artistColumn)
-                    val albumId = cursor.getLong(albumIdColumn)
-                    val contentUri: Uri = ContentUris.withAppendedId(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                        id
-                    )
-                    val mimeType = MimeTypeMap.getSingleton()
-                        .getExtensionFromMimeType(context.contentResolver.getType(contentUri))
-
-                    if (mimeType == MP3) {
-                        list.add(
-                            Track(
-                                trackId = id,
-                                trackTitle = title,
-                                trackLength = duration,
-                                artist = artist,
-                                albumId = albumId,
-                                contentUri = contentUri,
-                                mimeType = mimeType
-                            )
-                        )
-                    }
-                }
-            }
-            val tracksWithThumbnail = getTracksWithThumbnail(list)
-            Result.Success(tracksWithThumbnail)
+            Result.Success(deviceDataSource.getDeviceAudioFiles())
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private suspend fun getTracksWithThumbnail(tracks: List<Track>): List<Track> {
-        val result: List<Track>
-        coroutineScope {
-            result = tracks.map {
-                async { it.copy(thumbnail = getThumbnailAfterQ(it.contentUri!!)) }
-            }.awaitAll()
+    override suspend fun updateNowPlaying(nowPlaying: NowPlaying) {
+        withContext(Dispatchers.IO) {
+            dao.updateNowPlaying(nowPlaying)
         }
-
-        return result
     }
 
-    private fun getThumbnailBeforeQ(path: String): Bitmap? {
-        return BitmapFactory.decodeFile(path)
+    override fun getNowPlayingFlow(): Flow<NowPlaying?> = dao.getNowPlaying().distinctUntilChanged()
+
+    override fun deleteTrack(context: Context, track: Track) {
+        deviceDataSource.deleteAudioFileFromDevice(context, track)
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun getThumbnailAfterQ(contentUri: Uri): Bitmap? {
-        return try {
-            context.contentResolver.loadThumbnail(contentUri, Size(300, 300), null)
-        } catch (e: IOException) {
-            null
+    override suspend fun getLyricsForTrack(context: Context, track: Track): Result<String> {
+        if (context.currentConnectivityState == ConnectionState.Unavailable)
+            return Result.Error(ErrorHolder.NetworkConnection(context.getString(R.string.no_internet_connection)))
+
+        var mimeType = ""
+
+        val stream = track.contentUri?.let {
+            mimeType = MimeTypeMap.getSingleton()
+                .getExtensionFromMimeType(context.contentResolver.getType(it)).toString()
+            context.contentResolver.openInputStream(it)
+        } ?: return Result.Error(ErrorHolder.Local(context.getString(R.string.unknown_error)))
+
+        val request = UploadStreamRequestBody("audio/*", stream)
+        val filePart = MultipartBody.Part.createFormData(
+            "file",
+            "${track.trackTitle}.$mimeType",
+            request
+        )
+        val response = RequestHandler.safeApiCall(Dispatchers.IO) {
+            lyricsApiService.getLyricsForSong(filePart).lrcContent
         }
+
+        return response
     }
 }

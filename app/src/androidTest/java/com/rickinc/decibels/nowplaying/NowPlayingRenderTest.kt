@@ -27,7 +27,7 @@ class NowPlayingRenderTest {
 
     private val track = Track.getSingleTrack()
     private val uiState = NowPlayingState.TrackLoaded(
-        currentTrack = track,
+        track = track,
         isPlaying = false,
         repeatMode = 0,
         isShuffleActive = false,

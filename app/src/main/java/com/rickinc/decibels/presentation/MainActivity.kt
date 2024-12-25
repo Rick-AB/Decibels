@@ -18,8 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSessionService
@@ -27,14 +25,11 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.rickinc.decibels.domain.service.DecibelPlaybackService
-import com.rickinc.decibels.presentation.nowplaying.NowPlayingEvent
-import com.rickinc.decibels.presentation.nowplaying.NowPlayingViewModel
-import com.rickinc.decibels.presentation.ui.theme.DecibelsTheme
-import com.rickinc.decibels.presentation.ui.theme.LocalController
-import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
+import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingEvent
+import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingViewModel
+import com.rickinc.decibels.presentation.theme.DecibelsTheme
+import com.rickinc.decibels.presentation.theme.LocalController
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private lateinit var player: Player
     private lateinit var decibelService: DecibelPlaybackService
@@ -60,11 +55,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
-            DecibelsTheme(darkTheme = true, dynamicColor = false) {
+            DecibelsTheme(useDarkTheme = true, dynamicColor = false) {
                 CompositionLocalProvider(LocalController provides controller) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        MainActivityLayout()
+                        AppNavigation()
                     }
                 }
             }
@@ -78,56 +74,15 @@ class MainActivity : ComponentActivity() {
         controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
         controllerFuture.addListener({
             controller = controllerFuture.get()
-            setControllerListener()
             setPlayerListener()
         }, MoreExecutors.directExecutor())
-    }
-
-    private fun setControllerListener() {
-        controller?.addListener(object : Player.Listener {
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                super.onMediaItemTransition(mediaItem, reason)
-                nowPlayingViewModel.onEvent(
-                    NowPlayingEvent.OnMediaItemChanged(
-                        controller?.currentMediaItem
-                    )
-                )
-            }
-
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                super.onIsPlayingChanged(isPlaying)
-                nowPlayingViewModel.onEvent(
-                    NowPlayingEvent.OnIsPlayingChanged(
-                        controller?.isPlaying ?: false
-                    )
-                )
-            }
-
-            override fun onRepeatModeChanged(repeatMode: Int) {
-                super.onRepeatModeChanged(repeatMode)
-                nowPlayingViewModel.onEvent(NowPlayingEvent.OnRepeatModeChanged(repeatMode))
-            }
-
-            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-                super.onShuffleModeEnabledChanged(shuffleModeEnabled)
-                nowPlayingViewModel.onEvent(
-                    NowPlayingEvent.OnShuffleActiveChanged(
-                        shuffleModeEnabled
-                    )
-                )
-            }
-
-            override fun onPlayerErrorChanged(error: PlaybackException?) {
-                super.onPlayerErrorChanged(error)
-                nowPlayingViewModel.onEvent(NowPlayingEvent.OnError(error))
-            }
-        })
     }
 
     private fun setPlayerListener() {
         player.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 super.onPlaybackStateChanged(playbackState)
+                nowPlayingViewModel.onEvent(NowPlayingEvent.OnPlaybackStateChanged(playbackState))
                 updateNowPlayingProgress()
             }
         })
@@ -153,16 +108,6 @@ class MainActivity : ComponentActivity() {
                 delayMs = 1000
             }
             handler.postDelayed(updateNowPlayingAction, delayMs)
-        }
-    }
-
-    private fun getPlaybackStateName(i: Int): String? {
-        return when (i) {
-            1 -> "STATE_IDLE"
-            2 -> "STATE_BUFFERING"
-            3 -> "STATE_READY"
-            4 -> "STATE_ENDED"
-            else -> null
         }
     }
 

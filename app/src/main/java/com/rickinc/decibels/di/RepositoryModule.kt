@@ -1,12 +1,14 @@
 package com.rickinc.decibels.di
 
-import android.content.Context
+import com.rickinc.decibels.data.datasource.local.database.DecibelsDatabase
+import com.rickinc.decibels.data.datasource.local.device.DeviceDataSource
+import com.rickinc.decibels.data.datasource.network.LyricsApiService
+import com.rickinc.decibels.data.datasource.network.LyricsScraper
 import com.rickinc.decibels.data.repository.AudioRepositoryImpl
 import com.rickinc.decibels.domain.repository.AudioRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 
 @Module
@@ -15,8 +17,10 @@ class RepositoryModule {
 
     @Provides
     fun provideAudioRepository(
-        @ApplicationContext context: Context,
+        deviceDataSource: DeviceDataSource,
+        lyricsApiService: LyricsApiService,
+        decibelsDatabase: DecibelsDatabase
     ): AudioRepository {
-        return AudioRepositoryImpl(context)
+        return AudioRepositoryImpl(deviceDataSource, lyricsApiService, decibelsDatabase)
     }
 }

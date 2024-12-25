@@ -1,14 +1,17 @@
 package com.rickinc.decibels.presentation.util
 
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.ContentObserver
 import android.net.Uri
+import android.os.Handler
 import android.provider.Settings
 import android.widget.Toast
+import androidx.annotation.ColorInt
 import androidx.annotation.StringRes
-import androidx.datastore.dataStore
-import com.rickinc.decibels.domain.serializer.NowPlayingSerializer
+import androidx.core.graphics.ColorUtils
 
 fun Context.openAppSettings() {
     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
@@ -37,4 +40,18 @@ fun Context.showLongToast(@StringRes stringRes: Int) {
     Toast.makeText(this, getString(stringRes), Toast.LENGTH_LONG).show()
 }
 
-val Context.dataStore by dataStore("now-playing.json", NowPlayingSerializer)
+fun ContentResolver.registerObserver(
+    uri: Uri,
+    observer: (selfChange: Boolean) -> Unit
+): ContentObserver {
+    val contentObserver = object : ContentObserver(Handler()) {
+        override fun onChange(selfChange: Boolean) {
+            observer(selfChange)
+        }
+    }
+    registerContentObserver(uri, true, contentObserver)
+    return contentObserver
+}
+
+fun @receiver:ColorInt Int.isDark(): Boolean =
+    ColorUtils.calculateLuminance(this) < 0.5
