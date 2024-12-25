@@ -15,12 +15,9 @@ import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.domain.util.RingtoneUtil
 import com.rickinc.decibels.presentation.util.getRealPathFromURI
 import com.rickinc.decibels.presentation.util.showShortToast
-import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
-import javax.inject.Inject
 
-@HiltViewModel
-class TrackListMenuViewModel @Inject constructor(
+class TrackListMenuViewModel (
     private val ringtoneUtil: RingtoneUtil,
     private val audioRepository: AudioRepository
 ) : ViewModel() {

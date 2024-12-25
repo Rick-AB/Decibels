@@ -7,16 +7,16 @@ import androidx.media3.common.PlaybackException
 import com.rickinc.decibels.domain.exception.ErrorHolder
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.AudioRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class NowPlayingViewModel @Inject constructor(
-    private val audioRepository: AudioRepository,
-) : ViewModel() {
+class NowPlayingViewModel(private val audioRepository: AudioRepository) : ViewModel() {
     private val errorFlow = MutableStateFlow<PlaybackException?>(null)
     private val progressFlow = MutableStateFlow(0L)
     private val playbackStateFlow = MutableStateFlow(-1)

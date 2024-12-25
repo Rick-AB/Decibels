@@ -9,15 +9,12 @@ import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.AudioRepository
 import com.rickinc.decibels.domain.util.TrackConverter
 import com.rickinc.decibels.presentation.util.registerObserver
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class TrackListViewModel @Inject constructor(
+class TrackListViewModel(
     private val application: Application,
     private val audioRepo: AudioRepository,
     private val trackConverter: TrackConverter
