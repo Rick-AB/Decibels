@@ -5,8 +5,13 @@ import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import androidx.media3.common.*
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.media3.common.util.NotificationUtil.IMPORTANCE_HIGH
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -23,9 +28,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import timber.log.Timber
-import javax.inject.Inject
 
+@UnstableApi
 @AndroidEntryPoint
 class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
 
@@ -33,14 +39,9 @@ class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
         lateinit var binder: Binder
     }
 
-    @Inject
-    lateinit var player: Player
-
-    @Inject
-    lateinit var audioRepository: AudioRepository
-
-    @Inject
-    lateinit var trackConverter: TrackConverter
+    val player: Player by inject()
+    private val audioRepository: AudioRepository by inject()
+    private val trackConverter: TrackConverter by inject()
     private var mediaSession: MediaSession? = null
     private lateinit var notificationManager: PlayerNotificationManager
 

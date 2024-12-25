@@ -10,11 +10,10 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import timber.log.Timber
 import java.net.URI
-import javax.inject.Inject
 
 data class SongInfo(val title: String, val artist: String?, val lyrics: String, val source: String?)
 
-class LyricsScraper @Inject constructor() {
+class LyricsScraper  {
     companion object {
         val clearSpecialCharactersAndURL = "[|\\[\\]{}<>@].*".toRegex()
         val clearTrackExtras =

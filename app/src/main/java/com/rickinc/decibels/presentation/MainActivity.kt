@@ -25,13 +25,11 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.rickinc.decibels.domain.service.DecibelPlaybackService
-import com.rickinc.decibels.presentation.nowplaying.NowPlayingEvent
-import com.rickinc.decibels.presentation.nowplaying.NowPlayingViewModel
-import com.rickinc.decibels.presentation.ui.theme.DecibelsTheme
-import com.rickinc.decibels.presentation.ui.theme.LocalController
-import dagger.hilt.android.AndroidEntryPoint
+import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingEvent
+import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingViewModel
+import com.rickinc.decibels.presentation.theme.DecibelsTheme
+import com.rickinc.decibels.presentation.theme.LocalController
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private lateinit var player: Player
     private lateinit var decibelService: DecibelPlaybackService
@@ -62,7 +60,7 @@ class MainActivity : ComponentActivity() {
             DecibelsTheme(useDarkTheme = true, dynamicColor = false) {
                 CompositionLocalProvider(LocalController provides controller) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        MainActivityLayout()
+                        AppNavigation()
                     }
                 }
             }

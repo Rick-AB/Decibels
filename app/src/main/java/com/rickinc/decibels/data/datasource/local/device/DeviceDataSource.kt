@@ -17,9 +17,7 @@ import com.rickinc.decibels.domain.util.TrackConverter
 import kotlinx.coroutines.*
 import java.io.IOException
 
-class DeviceDataSource(
-    private val context: Context,
-) {
+class DeviceDataSource(private val context: Context) {
     @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun getDeviceAudioFiles(): List<Track> {
         return withContext(Dispatchers.IO) {

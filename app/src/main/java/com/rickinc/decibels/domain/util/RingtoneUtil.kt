@@ -11,10 +11,9 @@ import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
-import javax.inject.Inject
 
 
-class RingtoneUtil @Inject constructor() {
+class RingtoneUtil {
 
     fun setAsRingtone(context: Context, file: File): Boolean {
         val values = ContentValues()
