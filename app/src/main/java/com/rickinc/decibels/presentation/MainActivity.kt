@@ -4,12 +4,15 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.graphics.Color.TRANSPARENT
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,8 +57,11 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.auto(TRANSPARENT, TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.auto(TRANSPARENT, TRANSPARENT)
+        )
         super.onCreate(savedInstanceState)
-
         setContent {
             DecibelsTheme(useDarkTheme = true, dynamicColor = false) {
                 CompositionLocalProvider(LocalController provides controller) {

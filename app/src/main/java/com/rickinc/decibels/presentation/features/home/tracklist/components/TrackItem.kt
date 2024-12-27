@@ -1,7 +1,6 @@
 package com.rickinc.decibels.presentation.features.home.tracklist.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,13 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import com.rickinc.decibels.R
 import com.rickinc.decibels.presentation.features.home.tracklist.TrackItem
-import com.rickinc.decibels.presentation.theme.Typography
-import com.rickinc.decibels.presentation.util.formatTrackDuration
 
 @Composable
 fun TrackItem(
@@ -42,13 +41,14 @@ fun TrackItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable(onClick = onClick)
             .padding(start = 16.dp, end = 16.dp),
     ) {
-        Column(modifier = Modifier.weight(0.7f)) {
+        Column(modifier = Modifier.weight(0.9f)) {
             Text(
                 text = track.title,
-                style = Typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Normal,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -56,39 +56,29 @@ fun TrackItem(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = track.artist,
-                style = Typography.bodySmall,
-                maxLines = 1
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 1,
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
-        val displayTime = formatTrackDuration(track.trackLength.toLong())
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .weight(0.3f)
-                .padding(start = 16.dp)
-        ) {
-            Text(text = displayTime, style = Typography.bodyMedium)
-
-            Box {
-                IconButton(onClick = { isMenuExpanded = true }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_baseline_more_vert_24),
-                        contentDescription = "",
-                        tint = Color.Gray
-                    )
-                }
-
-                TrackItemMenu(
-                    expanded = isMenuExpanded,
-                    dismissMenu = { isMenuExpanded = false },
-                    modifier = Modifier.align(Alignment.TopEnd),
-                    track = track,
-                    mediaController = mediaController,
-                    actionTrackClick = onClick
+        Box {
+            IconButton(onClick = { isMenuExpanded = true }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_baseline_more_vert_24),
+                    contentDescription = "",
+                    tint = Color.Gray
                 )
             }
+
+            TrackItemMenu(
+                expanded = isMenuExpanded,
+                dismissMenu = { isMenuExpanded = false },
+                modifier = Modifier.align(Alignment.TopEnd),
+                track = track,
+                mediaController = mediaController,
+                actionTrackClick = onClick
+            )
         }
     }
 }

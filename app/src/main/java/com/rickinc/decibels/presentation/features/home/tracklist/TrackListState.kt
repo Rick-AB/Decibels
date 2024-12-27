@@ -7,6 +7,7 @@ import com.rickinc.decibels.domain.model.Track
 
 sealed class TrackListState {
     data object Loading : TrackListState()
+    data object Empty : TrackListState()
     data class Content(val tracks: List<TrackItem>) : TrackListState()
     data class Error(val errorMessage: String) : TrackListState()
 }

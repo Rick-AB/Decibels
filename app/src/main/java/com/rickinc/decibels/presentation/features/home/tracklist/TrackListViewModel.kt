@@ -34,7 +34,8 @@ class TrackListViewModel(
         trackConverter.toMediaItems(tracks)
     }.flowOn(Dispatchers.IO)
 
-    val uiState: StateFlow<TrackListState> = tracksFlow.mapLatest { tracks ->
+    val state: StateFlow<TrackListState> = tracksFlow.mapLatest { tracks ->
+        if (tracks.isEmpty()) return@mapLatest TrackListState.Empty
         val trackItems = tracks.map { track ->
             TrackItem(
                 id = track.id,
@@ -49,7 +50,7 @@ class TrackListViewModel(
         TrackListState.Content(trackItems)
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_00L),
+        started = SharingStarted.WhileSubscribed(5_000L),
         initialValue = TrackListState.Loading
     )
 
@@ -74,7 +75,7 @@ class TrackListViewModel(
             val result = audioRepo.getAudioFiles()
             result.fold(
                 onSuccess = { tracks ->
-                    tracksFlow.update { tracks }
+                    tracksFlow.update { tracks.toList() }
                 }
             )
         }
