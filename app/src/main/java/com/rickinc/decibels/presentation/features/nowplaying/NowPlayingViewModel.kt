@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.PlaybackException
 import com.rickinc.decibels.domain.exception.ErrorHolder
 import com.rickinc.decibels.domain.model.Track
-import com.rickinc.decibels.domain.repository.AudioRepository
+import com.rickinc.decibels.domain.repository.TrackRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,11 +16,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class NowPlayingViewModel(private val audioRepository: AudioRepository) : ViewModel() {
+class NowPlayingViewModel(private val trackRepository: TrackRepository) : ViewModel() {
     private val errorFlow = MutableStateFlow<PlaybackException?>(null)
     private val progressFlow = MutableStateFlow(0L)
     private val playbackStateFlow = MutableStateFlow(-1)
-    private val nowPlayingFlow = audioRepository.getNowPlayingFlow()
+    private val nowPlayingFlow = trackRepository.getNowPlayingFlow()
     val uiState =
         combine(
             nowPlayingFlow,
@@ -72,7 +72,7 @@ class NowPlayingViewModel(private val audioRepository: AudioRepository) : ViewMo
         lyricsJob.cancel()
         viewModelScope.launch(lyricsJob) {
             _bottomSheetUiState.update { NowPlayingBottomSheetState.Loading }
-            val result = audioRepository.getLyricsForTrack(context, track)
+            val result = trackRepository.getLyricsForTrack(context, track)
             result.fold(
                 onSuccess = { lyrics ->
                     _bottomSheetUiState.update { NowPlayingBottomSheetState.LyricsLoaded(lyrics) }

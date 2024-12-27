@@ -7,7 +7,7 @@ import com.rickinc.decibels.di.RepositoryModule
 import com.rickinc.decibels.domain.exception.ErrorHolder
 import com.rickinc.decibels.domain.model.NowPlaying
 import com.rickinc.decibels.domain.model.Result
-import com.rickinc.decibels.domain.repository.AudioRepository
+import com.rickinc.decibels.domain.repository.TrackRepository
 import com.rickinc.decibels.presentation.MainActivity
 import com.rickinc.decibels.domain.model.Track
 import dagger.Module
@@ -33,8 +33,8 @@ class TrackListErrorTest {
 
         @Provides
         @Singleton
-        fun provideTestAudioErrorRepository(): AudioRepository {
-            return TestAudioErrorRepository()
+        fun provideTestAudioErrorRepository(): TrackRepository {
+            return TestTrackErrorRepository()
         }
     }
 
@@ -58,7 +58,7 @@ class TrackListErrorTest {
         }
     }
 
-    class TestAudioErrorRepository : AudioRepository {
+    class TestTrackErrorRepository : TrackRepository {
         override suspend fun getAudioFiles(): Result<List<Track>> {
             return Result.Error(ErrorHolder.Local("Failed to load audio files"))
         }

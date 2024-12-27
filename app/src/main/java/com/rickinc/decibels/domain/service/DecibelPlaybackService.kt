@@ -19,15 +19,13 @@ import androidx.media3.ui.PlayerNotificationManager
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.rickinc.decibels.R
-import com.rickinc.decibels.domain.model.NowPlaying
-import com.rickinc.decibels.domain.repository.AudioRepository
+import com.rickinc.decibels.domain.repository.TrackRepository
 import com.rickinc.decibels.domain.util.TrackConverter
 import com.rickinc.decibels.domain.util.TrackConverter.Companion.CONTENT_URI_KEY
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 
@@ -40,7 +38,7 @@ class DecibelPlaybackService : MediaSessionService(), MediaSession.Callback {
     }
 
     val player: Player by inject()
-    private val audioRepository: AudioRepository by inject()
+    private val trackRepository: TrackRepository by inject()
     private val trackConverter: TrackConverter by inject()
     private var mediaSession: MediaSession? = null
     private lateinit var notificationManager: PlayerNotificationManager

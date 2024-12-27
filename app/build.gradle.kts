@@ -99,6 +99,9 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.bundles.koin.compose)
 
+    // image loading
+    implementation(libs.coil.compose)
+
     implementation(libs.navigation.compose)
 
     // timber

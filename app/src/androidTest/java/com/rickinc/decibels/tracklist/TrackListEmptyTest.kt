@@ -3,7 +3,7 @@ package com.rickinc.decibels.tracklist
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.rickinc.decibels.di.RepositoryModule
 import com.rickinc.decibels.domain.model.Result
-import com.rickinc.decibels.domain.repository.AudioRepository
+import com.rickinc.decibels.domain.repository.TrackRepository
 import com.rickinc.decibels.presentation.MainActivity
 import com.rickinc.decibels.domain.model.Track
 import dagger.Module
@@ -28,8 +28,8 @@ class TrackListEmptyTest {
 
         @Provides
         @Singleton
-        fun provideTestAudioEmptyRepository(): AudioRepository {
-            return TestAudioEmptyRepository()
+        fun provideTestAudioEmptyRepository(): TrackRepository {
+            return TestTrackEmptyRepository()
         }
     }
 
@@ -53,7 +53,7 @@ class TrackListEmptyTest {
         }
     }
 
-    class TestAudioEmptyRepository : AudioRepository {
+    class TestTrackEmptyRepository : TrackRepository {
         override suspend fun getAudioFiles(): Result<List<Track>> {
             return Result.Success(emptyList())
         }

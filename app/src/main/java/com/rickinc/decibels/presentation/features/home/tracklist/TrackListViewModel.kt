@@ -6,7 +6,7 @@ import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rickinc.decibels.domain.model.Track
-import com.rickinc.decibels.domain.repository.AudioRepository
+import com.rickinc.decibels.domain.repository.TrackRepository
 import com.rickinc.decibels.domain.util.TrackConverter
 import com.rickinc.decibels.presentation.util.registerObserver
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 
 class TrackListViewModel(
     private val application: Application,
-    private val audioRepo: AudioRepository,
+    private val audioRepo: TrackRepository,
     private val trackConverter: TrackConverter
 ) : ViewModel() {
 
@@ -44,7 +44,8 @@ class TrackListViewModel(
                 artist = track.artist,
                 albumId = track.albumId,
                 contentUri = track.contentUri,
-                mediaItem = trackConverter.trackToMediaItem(track)
+                mediaItem = trackConverter.trackToMediaItem(track),
+                thumbnailUri = track.thumbnailUri
             )
         }
         TrackListState.Content(trackItems)

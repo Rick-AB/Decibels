@@ -14,7 +14,7 @@ import com.rickinc.decibels.domain.exception.ErrorHolder
 import com.rickinc.decibels.domain.model.NowPlaying
 import com.rickinc.decibels.domain.model.Result
 import com.rickinc.decibels.domain.model.Track
-import com.rickinc.decibels.domain.repository.AudioRepository
+import com.rickinc.decibels.domain.repository.TrackRepository
 import com.rickinc.decibels.domain.util.UploadStreamRequestBody
 import com.rickinc.decibels.presentation.util.ConnectionState
 import com.rickinc.decibels.presentation.util.currentConnectivityState
@@ -24,11 +24,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import okhttp3.MultipartBody
 
 
-class AudioRepositoryImpl(
+class TrackRepositoryImpl(
     private val deviceDataSource: DeviceDataSource,
     private val lyricsApiService: LyricsApiService,
     decibelsDatabase: DecibelsDatabase
-) : AudioRepository {
+) : TrackRepository {
     private val dao = decibelsDatabase.dao
 
     @RequiresApi(Build.VERSION_CODES.Q)

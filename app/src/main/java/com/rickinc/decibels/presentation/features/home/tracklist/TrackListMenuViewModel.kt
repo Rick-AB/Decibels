@@ -10,8 +10,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import com.rickinc.decibels.BuildConfig
 import com.rickinc.decibels.R
-import com.rickinc.decibels.domain.model.Track
-import com.rickinc.decibels.domain.repository.AudioRepository
+import com.rickinc.decibels.domain.repository.TrackRepository
 import com.rickinc.decibels.domain.util.RingtoneUtil
 import com.rickinc.decibels.presentation.util.getRealPathFromURI
 import com.rickinc.decibels.presentation.util.showShortToast
@@ -19,14 +18,14 @@ import java.io.File
 
 class TrackListMenuViewModel(
     private val ringtoneUtil: RingtoneUtil,
-    private val audioRepository: AudioRepository
+    private val trackRepository: TrackRepository
 ) : ViewModel() {
 
     fun deleteTrack(context: Context, trackId: Long, contentUri: Uri?): IntentSenderRequest? {
         if (contentUri == null) return null
 
         try {
-            audioRepository.deleteTrack(context, trackId, contentUri)
+            trackRepository.deleteTrack(context, trackId, contentUri)
         } catch (securityException: SecurityException) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val recoverableSecurityException =

@@ -1,6 +1,7 @@
 package com.rickinc.decibels.domain.util
 
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import okio.BufferedSink
 import java.io.InputStream
@@ -13,7 +14,7 @@ class UploadStreamRequestBody(
 
     override fun contentLength(): Long = inputStream.available().toLong()
 
-    override fun contentType(): MediaType? = MediaType.parse(mediaType)
+    override fun contentType(): MediaType? = mediaType.toMediaTypeOrNull()
 
     override fun writeTo(sink: BufferedSink) {
         val contentLength = inputStream.available().toFloat()

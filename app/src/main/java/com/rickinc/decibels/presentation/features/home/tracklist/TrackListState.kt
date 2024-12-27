@@ -20,5 +20,6 @@ data class TrackItem(
     val artist: String,
     val albumId: Long,
     val contentUri: Uri?,
-    val mediaItem: MediaItem
+    val mediaItem: MediaItem,
+    val thumbnailUri: Uri?
 )

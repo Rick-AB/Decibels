@@ -5,11 +5,11 @@ import android.net.Uri
 import com.rickinc.decibels.domain.exception.ErrorHolder
 import com.rickinc.decibels.domain.model.NowPlaying
 import com.rickinc.decibels.domain.model.Result
-import com.rickinc.decibels.domain.repository.AudioRepository
+import com.rickinc.decibels.domain.repository.TrackRepository
 import com.rickinc.decibels.domain.model.Track
 import kotlinx.coroutines.flow.Flow
 
-class TestAudioRepository : AudioRepository {
+class TestTrackRepository : TrackRepository {
     var shouldThrowException: Boolean = false
     override suspend fun getAudioFiles(): Result<List<Track>> {
         return if (shouldThrowException) Result.Error(ErrorHolder.Local("Error reading audio files"))

@@ -26,12 +26,12 @@ class DeviceDataSource(private val context: Context) {
     suspend fun getDeviceAudioFiles(): List<Track> {
         return withContext(Dispatchers.IO) {
             val list = mutableListOf<Track>()
-            val collection =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-                } else {
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-                }
+            val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+            } else {
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+            }
+
             val projection = arrayOf(
                 MediaStore.Audio.Media._ID,
                 MediaStore.Audio.Media.DISPLAY_NAME,
@@ -40,6 +40,7 @@ class DeviceDataSource(private val context: Context) {
                 MediaStore.Audio.Media.ALBUM_ID,
                 MediaStore.Audio.Media.ARTIST,
             )
+
             val selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0"
             val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
             val query = context.contentResolver.query(
@@ -49,7 +50,7 @@ class DeviceDataSource(private val context: Context) {
                 null,
                 sortOrder
             )
-
+            val albumArtStorage = Uri.parse("content://media/external/audio/albumart")
             query?.use { cursor ->
                 val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
                 val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
@@ -79,7 +80,8 @@ class DeviceDataSource(private val context: Context) {
                                 albumId = albumId,
                                 contentUri = contentUri,
                                 mimeType = mimeType,
-                                hasThumbnail = false
+                                hasThumbnail = false,
+                                thumbnailUri = ContentUris.withAppendedId(albumArtStorage, albumId)
                             )
                         )
                     }
@@ -104,9 +106,7 @@ class DeviceDataSource(private val context: Context) {
         coroutineScope {
             result = tracks.map {
                 async {
-                    val thumbnailResult = getThumbnailAfterQ(it.contentUri!!)
-                    val thumbnail = thumbnailResult.first
-                    val hasOriginalBitmap = thumbnailResult.second
+                    val (thumbnail, hasOriginalBitmap) = getThumbnailAfterQ(it.contentUri!!)
                     it.copy(thumbnail = thumbnail, hasThumbnail = hasOriginalBitmap)
                 }
             }.awaitAll()

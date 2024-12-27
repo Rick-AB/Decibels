@@ -18,7 +18,8 @@ data class Track(
     val contentUri: Uri?,
     val thumbnail: Bitmap? = null,
     val mimeType: String?,
-    val hasThumbnail: Boolean
+    val hasThumbnail: Boolean,
+    val thumbnailUri: Uri? = null
 ) {
     companion object {
         fun getUniqueTrackList(): List<Track> {
