@@ -5,6 +5,7 @@ import android.database.ContentObserver
 import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.session.MediaController
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.TrackRepository
 import com.rickinc.decibels.domain.util.TrackConverter
@@ -23,7 +24,8 @@ import kotlinx.coroutines.launch
 class TrackListViewModel(
     private val application: Application,
     private val audioRepo: TrackRepository,
-    private val trackConverter: TrackConverter
+    private val trackConverter: TrackConverter,
+    private val mediaController: MediaController
 ) : ViewModel() {
 
     private val _nowPlayingTrack = MutableStateFlow<Track?>(null)

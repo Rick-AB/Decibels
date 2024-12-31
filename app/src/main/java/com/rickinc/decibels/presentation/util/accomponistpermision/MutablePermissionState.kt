@@ -1,4 +1,4 @@
-package com.rickinc.decibels.presentation.components.accomponistpermision
+package com.rickinc.decibels.presentation.util.accomponistpermision
 
 import android.app.Activity
 import android.content.Context

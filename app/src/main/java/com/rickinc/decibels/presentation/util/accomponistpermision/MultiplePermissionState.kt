@@ -1,4 +1,4 @@
-package com.rickinc.decibels.presentation.components.accomponistpermision
+package com.rickinc.decibels.presentation.util.accomponistpermision
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -65,5 +65,5 @@ interface MultiplePermissionsState {
      * again or has denied the permission multiple times.
      * This behavior varies depending on the Android level API.
      */
-    fun launchMultiplePermissionRequest(): Unit
+    fun launchMultiplePermissionRequest()
 }

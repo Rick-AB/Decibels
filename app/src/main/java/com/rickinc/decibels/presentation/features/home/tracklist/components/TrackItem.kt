@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,16 +20,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
-import coil.compose.AsyncImage
 import com.rickinc.decibels.R
+import com.rickinc.decibels.presentation.components.TrackThumbnail
 import com.rickinc.decibels.presentation.features.home.tracklist.TrackItem
 
 @Composable
@@ -49,18 +46,7 @@ fun TrackItem(
             .clickable(onClick = onClick)
             .padding(start = 16.dp, end = 16.dp),
     ) {
-        if (track.thumbnailUri != null) {
-            AsyncImage(
-                model = track.thumbnailUri,
-                contentDescription = "album art",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(MaterialTheme.shapes.medium)
-            )
-        } else {
-            Box(modifier = Modifier.size(40.dp))
-        }
+        TrackThumbnail(thumbnailUri = track.thumbnailUri)
 
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(0.9f)) {

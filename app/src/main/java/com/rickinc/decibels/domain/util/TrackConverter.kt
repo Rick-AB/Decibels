@@ -1,6 +1,5 @@
 package com.rickinc.decibels.domain.util
 
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -25,7 +24,7 @@ class TrackConverter {
         extra.putInt(TRACK_LENGTH_KEY, track.trackLength)
         extra.putLong(ALBUM_ID_KEY, track.albumId)
         extra.putString(MP3, track.mimeType)
-        extra.putParcelable(THUMBNAIL_KEY, track.thumbnail)
+        extra.putParcelable(THUMBNAIL_KEY, track.thumbnailUri)
         extra.putBoolean(HAS_THUMBNAIL, track.hasThumbnail)
 
         val mediaMetadata = MediaMetadata.Builder()
@@ -57,8 +56,8 @@ class TrackConverter {
         val artist = metaData.artist.toString()
         val albumId = bundle.getLong(ALBUM_ID_KEY)
         val contentUri = Uri.parse(bundle.getString(CONTENT_URI_KEY))
-        val thumbnail = if (Build.VERSION.SDK_INT >= 33) {
-            bundle.getParcelable(THUMBNAIL_KEY, Bitmap::class.java)
+        val thumbnailUri = if (Build.VERSION.SDK_INT >= 33) {
+            bundle.getParcelable(THUMBNAIL_KEY, Uri::class.java)
         } else {
             bundle.getParcelable(THUMBNAIL_KEY)
         }
@@ -72,9 +71,9 @@ class TrackConverter {
             artist,
             albumId,
             contentUri,
-            thumbnail,
             mimeType,
-            hasThumbnail
+            hasThumbnail,
+            thumbnailUri
         )
     }
 }

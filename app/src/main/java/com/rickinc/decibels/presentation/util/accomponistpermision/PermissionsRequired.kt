@@ -1,8 +1,6 @@
-package com.rickinc.decibels.presentation.components.accomponistpermision
+package com.rickinc.decibels.presentation.util.accomponistpermision
 
 import androidx.compose.runtime.Composable
-import com.rickinc.decibels.presentation.components.accomponistpermision.MultiplePermissionsState
-import com.rickinc.decibels.presentation.components.accomponistpermision.PermissionState
 
 @Composable
 fun PermissionRequired(

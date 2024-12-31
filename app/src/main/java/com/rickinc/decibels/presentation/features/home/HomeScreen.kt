@@ -5,19 +5,16 @@ import android.content.SharedPreferences
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -32,9 +29,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.LifecycleStartEffect
 import com.rickinc.decibels.R
-import com.rickinc.decibels.presentation.components.accomponistpermision.findActivity
-import com.rickinc.decibels.presentation.components.accomponistpermision.isPermissionPermanentlyDenied
-import com.rickinc.decibels.presentation.components.accomponistpermision.setShouldShowRationaleStatus
+import com.rickinc.decibels.presentation.util.accomponistpermision.findActivity
+import com.rickinc.decibels.presentation.util.accomponistpermision.isPermissionPermanentlyDenied
+import com.rickinc.decibels.presentation.util.accomponistpermision.setShouldShowRationaleStatus
 import com.rickinc.decibels.presentation.features.home.tracklist.TrackListScreen
 import com.rickinc.decibels.presentation.features.home.tracklist.TrackListState
 import com.rickinc.decibels.presentation.theme.light_onBackground2
@@ -132,7 +129,6 @@ fun HomeScreen(trackListState: TrackListState, modifier: Modifier = Modifier) {
                         HomeTab.Tracks -> {
                             TrackListScreen(
                                 trackListState = trackListState,
-                                goToNowPlayingScreen = {},
                             )
                         }
 
