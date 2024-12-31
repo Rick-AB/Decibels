@@ -13,7 +13,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.CompositionLocalProvider
@@ -32,6 +31,7 @@ import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingEvent
 import com.rickinc.decibels.presentation.features.nowplaying.NowPlayingViewModel
 import com.rickinc.decibels.presentation.theme.DecibelsTheme
 import com.rickinc.decibels.presentation.util.LocalController
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
     private lateinit var player: Player
@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
     private var controller by mutableStateOf<MediaController?>(null)
     private var bound: Boolean = false
 
-    private val nowPlayingViewModel: NowPlayingViewModel by viewModels()
+    private val nowPlayingViewModel: NowPlayingViewModel by inject()
     private val handler = Handler(Looper.getMainLooper())
     private val updateNowPlayingAction = Runnable { updateNowPlayingProgress() }
     private val connection = object : ServiceConnection {

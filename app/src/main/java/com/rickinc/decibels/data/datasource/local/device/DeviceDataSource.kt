@@ -2,30 +2,21 @@ package com.rickinc.decibels.data.datasource.local.device
 
 import android.content.ContentUris
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.util.Size
 import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.toBitmap
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.util.TrackConverter
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
-import java.io.IOException
 
 class DeviceDataSource(private val context: Context) {
     @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun getDeviceAudioFiles(): List<Track> {
         return withContext(Dispatchers.IO) {
-            val list = mutableListOf<Track>()
+            val tracks = mutableListOf<Track>()
             val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
             } else {
@@ -71,7 +62,7 @@ class DeviceDataSource(private val context: Context) {
                     val mimeType = MimeTypeMap.getSingleton()
                         .getExtensionFromMimeType(context.contentResolver.getType(contentUri))
                     if (mimeType == TrackConverter.MP3) {
-                        list.add(
+                        tracks.add(
                             Track(
                                 id = id,
                                 title = title,
@@ -87,8 +78,7 @@ class DeviceDataSource(private val context: Context) {
                     }
                 }
             }
-            val tracksWithThumbnail = getTracksWithThumbnail(list)
-            tracksWithThumbnail
+            tracks
         }
     }
 
@@ -98,44 +88,5 @@ class DeviceDataSource(private val context: Context) {
             "${MediaStore.Audio.Media._ID} = ?",
             arrayOf(trackId.toString())
         )
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private suspend fun getTracksWithThumbnail(tracks: List<Track>): List<Track> {
-        val result: List<Track>
-        coroutineScope {
-            result = tracks.map {
-                async {
-                    val (thumbnail, hasOriginalBitmap) = getThumbnailAfterQ(it.contentUri!!)
-                    it.copy(thumbnail = thumbnail, hasThumbnail = hasOriginalBitmap)
-                }
-            }.awaitAll()
-        }
-
-        return result
-    }
-
-    private fun getThumbnailBeforeQ(path: String): Bitmap? {
-        return BitmapFactory.decodeFile(path)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun getThumbnailAfterQ(contentUri: Uri): Pair<Bitmap, Boolean> {
-        return try {
-            val bitmap = context.contentResolver.loadThumbnail(contentUri, Size(300, 300), null)
-            Pair(bitmap, true)
-        } catch (e: IOException) {
-            val drawable = ContextCompat.getDrawable(
-                context,
-                com.rickinc.decibels.R.drawable.ic_baseline_audio_file_24,
-            )
-
-            val bitmap = drawable!!.toBitmap(
-                width = 300,
-                height = 300,
-                Bitmap.Config.ARGB_8888
-            )
-            Pair(bitmap, false)
-        }
     }
 }

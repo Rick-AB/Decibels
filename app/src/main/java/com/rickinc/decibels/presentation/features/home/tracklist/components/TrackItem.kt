@@ -27,12 +27,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import com.rickinc.decibels.R
+import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.presentation.components.TrackThumbnail
-import com.rickinc.decibels.presentation.features.home.tracklist.TrackItem
 
 @Composable
 fun TrackItem(
-    track: TrackItem,
+    track: Track,
     mediaController: MediaController?,
     modifier: Modifier = Modifier,
     onClick: () -> Unit

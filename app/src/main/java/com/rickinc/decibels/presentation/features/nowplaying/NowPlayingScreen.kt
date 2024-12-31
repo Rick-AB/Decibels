@@ -15,7 +15,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -65,7 +63,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
-import androidx.palette.graphics.Palette
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Track
@@ -75,8 +72,8 @@ import com.rickinc.decibels.presentation.components.currentFraction
 import com.rickinc.decibels.presentation.features.nowplaying.components.NowPlayingBottomSheetContent
 import com.rickinc.decibels.presentation.features.nowplaying.components.motionScene
 import com.rickinc.decibels.presentation.theme.LightBlack
-import com.rickinc.decibels.presentation.util.LocalController
 import com.rickinc.decibels.presentation.theme.Typography
+import com.rickinc.decibels.presentation.util.LocalController
 import com.rickinc.decibels.presentation.util.formatTrackDuration
 
 @Composable
@@ -130,7 +127,6 @@ fun NowPlayingScreen(
     val primaryBackgroundColor = LightBlack
     val secondaryBackgroundColor = MaterialTheme.colorScheme.primary
     val hasThumbnail = trackState.hasThumbnail
-    val trackThumbnail = trackState.thumbnail!!
     val controller = LocalController.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val window = (LocalContext.current as ComponentActivity).window
@@ -143,22 +139,22 @@ fun NowPlayingScreen(
     var color by remember { mutableStateOf(secondaryBackgroundColor) }
     val animatedOnBackgroundColor by animateColorAsState(targetValue = color, label = "animate color")
 
-    LaunchedEffect(key1 = trackThumbnail) {
-        if (hasThumbnail) {
-            Palette.from(trackThumbnail).generate { palette ->
-                val multiplicationFactor = 0.22
-                val rgb = palette?.dominantSwatch?.rgb!!
-                val r = android.graphics.Color.red(rgb).times(multiplicationFactor).toInt()
-                val g = android.graphics.Color.green(rgb).times(multiplicationFactor).toInt()
-                val b = android.graphics.Color.blue(rgb).times(multiplicationFactor).toInt()
-                backgroundColor = Color(r, g, b)
-                color = Color(rgb)
-            }
-        } else {
-            backgroundColor = primaryBackgroundColor
-            color = secondaryBackgroundColor
-        }
-    }
+//    LaunchedEffect(key1 = trackThumbnail) {
+//        if (hasThumbnail) {
+//            Palette.from(trackThumbnail).generate { palette ->
+//                val multiplicationFactor = 0.22
+//                val rgb = palette?.dominantSwatch?.rgb!!
+//                val r = android.graphics.Color.red(rgb).times(multiplicationFactor).toInt()
+//                val g = android.graphics.Color.green(rgb).times(multiplicationFactor).toInt()
+//                val b = android.graphics.Color.blue(rgb).times(multiplicationFactor).toInt()
+//                backgroundColor = Color(r, g, b)
+//                color = Color(rgb)
+//            }
+//        } else {
+//            backgroundColor = primaryBackgroundColor
+//            color = secondaryBackgroundColor
+//        }
+//    }
 
     LaunchedEffect(key1 = backgroundColor, key2 = color) {
         systemUiController.setStatusBarColor(backgroundColor)
@@ -207,11 +203,11 @@ fun NowPlayingScreen(
                 modifier = Modifier.layoutId(NowPlayingLayout.TOP_APP_BAR)
             )
 
-            Image(
-                bitmap = trackThumbnail.asImageBitmap(),
-                contentDescription = stringResource(id = R.string.album_art),
-                modifier = Modifier.layoutId(NowPlayingLayout.IMAGE)
-            )
+//            Image(
+//                bitmap = trackThumbnail.asImageBitmap(),
+//                contentDescription = stringResource(id = R.string.album_art),
+//                modifier = Modifier.layoutId(NowPlayingLayout.IMAGE)
+//            )
 
             val titleProperties = customProperties(NowPlayingLayout.TITLE.name)
             val alignmentProperty = titleProperties.int(textAlign)

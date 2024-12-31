@@ -29,12 +29,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaController
 import com.rickinc.decibels.R
 import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.presentation.components.DeleteDialog
-import com.rickinc.decibels.presentation.features.home.tracklist.TrackItem
 import com.rickinc.decibels.presentation.features.home.tracklist.TrackListMenuViewModel
 import com.rickinc.decibels.presentation.theme.Typography
 import com.rickinc.decibels.presentation.util.showLongToast
@@ -44,7 +42,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun TrackItemMenu(
     expanded: Boolean,
     dismissMenu: () -> Unit,
-    track: TrackItem,
+    track: Track,
     mediaController: MediaController?,
     actionTrackClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -116,7 +114,7 @@ fun TrackItemMenu(
         TrackItemMenuItem(
             menuTextRes = R.string.play_next,
             onDismiss = dismissMenu,
-            onClick = { playNext(context, mediaController, track.mediaItem) },
+            onClick = { playNext(context, mediaController) },
         )
 
         TrackItemMenuItem(
@@ -188,7 +186,7 @@ private fun delegateDeleteToActivity(
 
 @Composable
 private fun getDeleteLauncher(
-    track: TrackItem,
+    track: Track,
     actionDeleteTrack: (Context, Long, Uri?) -> IntentSenderRequest?
 ): ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult> {
     val context = LocalContext.current
@@ -206,9 +204,9 @@ private fun getDeleteLauncher(
 private fun playNext(
     context: Context,
     mediaController: MediaController?,
-    mediaItem: MediaItem
+//    mediaItem: MediaItem
 ) {
-    val index = mediaController?.nextMediaItemIndex ?: 0
-    mediaController?.addMediaItem(index, mediaItem)
-    context.showLongToast(R.string.song_s_will_be_played_next)
+//    val index = mediaController?.nextMediaItemIndex ?: 0
+//    mediaController?.addMediaItem(index, mediaItem)
+//    context.showLongToast(R.string.song_s_will_be_played_next)
 }

@@ -10,12 +10,9 @@ import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.domain.repository.TrackRepository
 import com.rickinc.decibels.domain.util.TrackConverter
 import com.rickinc.decibels.presentation.util.registerObserver
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -25,32 +22,12 @@ class TrackListViewModel(
     private val application: Application,
     private val audioRepo: TrackRepository,
     private val trackConverter: TrackConverter,
-    private val mediaController: MediaController
 ) : ViewModel() {
 
-    private val _nowPlayingTrack = MutableStateFlow<Track?>(null)
-    val nowPlayingTrack = _nowPlayingTrack.asStateFlow()
-
     private val tracksFlow = MutableStateFlow(emptyList<Track>())
-    private val mediaItemsFlow = tracksFlow.mapLatest { tracks ->
-        trackConverter.toMediaItems(tracks)
-    }.flowOn(Dispatchers.IO)
-
     val state: StateFlow<TrackListState> = tracksFlow.mapLatest { tracks ->
         if (tracks.isEmpty()) return@mapLatest TrackListState.Empty
-        val trackItems = tracks.map { track ->
-            TrackItem(
-                id = track.id,
-                title = track.title,
-                trackLength = track.trackLength,
-                artist = track.artist,
-                albumId = track.albumId,
-                contentUri = track.contentUri,
-                mediaItem = trackConverter.trackToMediaItem(track),
-                thumbnailUri = track.thumbnailUri
-            )
-        }
-        TrackListState.Content(trackItems)
+        TrackListState.Content(tracks)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000L),
@@ -69,8 +46,27 @@ class TrackListViewModel(
 
     fun onEvent(event: TrackListEvent) {
         when (event) {
-            is TrackListEvent.PlayTrack -> {}
+            is TrackListEvent.PlayTrack -> playTrack(event.track, event.mediaController)
         }
+    }
+
+    private fun playTrack(track: Track, mediaController: MediaController) {
+        mediaController.clearMediaItems()
+        mediaController.setMediaItem(trackConverter.trackToMediaItem(track))
+        mediaController.prepare()
+        mediaController.play()
+
+        setQueue(track, mediaController)
+    }
+
+    private fun setQueue(selectedTrack: Track, mediaController: MediaController) {
+        val tracks = tracksFlow.value
+        val indexOfSelectedTrack = tracks.indexOf(selectedTrack)
+        val mediaItems = trackConverter.toMediaItems(tracks)
+        val tracksBeforeCurrent = mediaItems.subList(0, indexOfSelectedTrack)
+        val tracksAfterCurrent = mediaItems.subList(indexOfSelectedTrack + 1, mediaItems.lastIndex)
+        mediaController.addMediaItems(0, tracksBeforeCurrent)
+        mediaController.addMediaItems(tracksAfterCurrent)
     }
 
     fun getAudioFiles() {
@@ -83,8 +79,6 @@ class TrackListViewModel(
             )
         }
     }
-
-    fun setNowPlaying(selectedTrack: Track) = _nowPlayingTrack.update { selectedTrack }
 
     override fun onCleared() {
         super.onCleared()

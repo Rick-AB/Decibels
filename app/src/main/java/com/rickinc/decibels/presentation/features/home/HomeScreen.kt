@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.LifecycleStartEffect
 import com.rickinc.decibels.R
+import com.rickinc.decibels.domain.model.Track
 import com.rickinc.decibels.presentation.util.accomponistpermision.findActivity
 import com.rickinc.decibels.presentation.util.accomponistpermision.isPermissionPermanentlyDenied
 import com.rickinc.decibels.presentation.util.accomponistpermision.setShouldShowRationaleStatus
@@ -49,7 +50,11 @@ enum class HomeTab {
 data object HomeRoute
 
 @Composable
-fun HomeScreen(trackListState: TrackListState, modifier: Modifier = Modifier) {
+fun HomeScreen(
+    trackListState: TrackListState,
+    onTrackItemClick: (Track) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         topBar = { HomeTopAppBar() },
         modifier = modifier,
@@ -129,6 +134,7 @@ fun HomeScreen(trackListState: TrackListState, modifier: Modifier = Modifier) {
                         HomeTab.Tracks -> {
                             TrackListScreen(
                                 trackListState = trackListState,
+                                onTrackClick = onTrackItemClick
                             )
                         }
 

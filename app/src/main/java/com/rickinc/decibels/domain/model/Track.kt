@@ -1,14 +1,12 @@
 package com.rickinc.decibels.domain.model
 
 import android.net.Uri
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.compose.runtime.Immutable
 import com.google.gson.GsonBuilder
 import com.rickinc.decibels.domain.util.UriTypeAdapter
 
-@Entity
+@Immutable
 data class Track(
-    @PrimaryKey(autoGenerate = false)
     val id: Long,
     val title: String,
     val trackLength: Int,
